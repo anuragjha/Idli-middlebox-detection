@@ -73,14 +73,32 @@ main (int argc, char *argv[])
         //NS_LOG_INFO ("Create channels.");
 
         p2p.SetDeviceAttribute ("DataRate", StringValue ("8Mbps"));
-        p2p.SetChannelAttribute ("Delay", StringValue ("100ms"));
+        p2p.SetChannelAttribute ("Delay", StringValue ("1000ms"));
         NetDeviceContainer subnet1Devices = p2p.Install(n1);
         NetDeviceContainer subnet2Devices = p2p.Install(n2);
         NetDeviceContainer subnet3Devices = p2p.Install(n3);
 
-        Ptr<NetDevice> p = subnet1Devices.Get(1);
-
-        //p->GetQueue() 
+        //Ptr<NetDevice> n = subnet2Devices.Get(0);
+        //Ptr<PointToPointNetDevice> pppNetDevice = n->GetObject<PointToPointNetDevice> ();
+        //Ptr<Queue<Packet>> q = pppNetDevice->GetQueue();
+        
+        //uint32_t qSize=q->GetCurrentSize ().GetValue ();
+        //std::cout<<"Queue size of is "<<qSize<<" at"<<Simulator::Now().GetSeconds()<<std::endl;
+        //NS_LOG_INFO ("Create nodes.");
+        //Ptr<Packet> p = pppNetDevice->m_currentPkt; 
+                //Ptr<Packet> p = q->Dequeue ();
+                //std::cout<<"p : "<<p<<"\n\n\n";
+        //uint32_t uid = p->GetUid ();
+        //
+        // remove header
+       // UdpHeader udpHeader;
+       // p->RemoveHeader (udpHeader);
+       // std::cout<<udpHeader<<"\n\n\n";
+        //uint16_t size;
+        //uint32_t size = p->GetSize();
+        //std::cout<<size<<"\n\n\n";
+        //NS_LOG_INFO ("Size.");
+        //NS_LOG_INFO (size);
         //InternetStackHelper stack;
         //stack.Install(n1);
         //stack.Install(n2);
@@ -119,10 +137,31 @@ main (int argc, char *argv[])
         client.SetAttribute ("PacketSize", UintegerValue (packetSize));
         clientApp=client.Install(hosts.Get(0)); 
         clientApp.Start(Seconds(2.0));
-        clientApp.Stop(Seconds(9.0));       
+        clientApp.Stop(Seconds(9.0));  
+// Users may find it convenient to initialize echo packets with actual data;
+// the below lines suggest how to do this
+//
+  client.SetFill (clientApp.Get (0), "Hello World");
+
+//  client.SetFill (clientApp.Get (0), 0xa5, 1024);
+
+//  uint8_t fill[] = { 0, 1, 2, 3, 4, 5, 6};
+//  client.SetFill (clientApp.Get (0), fill, sizeof(fill), 1024);
+
                 
         //NS_LOG_INFO ("Run Simulation.");
         Simulator::Run();
+        Ptr<NetDevice> n = subnet2Devices.Get(0);
+        Ptr<PointToPointNetDevice> pppNetDevice = n->GetObject<PointToPointNetDevice> ();
+        Ptr<Queue<Packet>> q = pppNetDevice->GetQueue();
+        uint32_t qSize=q->GetCurrentSize ().GetValue ();
+        std::cout<<"Queue size of is "<<qSize<<" at"<<Simulator::Now().GetSeconds()<<std::endl;
+        //uint32_t qSize=q->GetCurrentSize ().GetValue ();
+        //std::cout<<"Queue size of is "<<qSize<<" at"<<Simulator::Now().GetSeconds()<<std::endl;
+        //NS_LOG_INFO ("Create nodes.");
+        //Ptr<Packet> p = pppNetDevice->m_currentPkt; 
+        //Ptr<Packet> p = q->Dequeue ();
+        //std::cout<<"p : "<<p<<"\n\n\n";
         Simulator::Destroy();
         //NS_LOG_INFO ("Done.");
         return 0;
