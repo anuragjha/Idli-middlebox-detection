@@ -1,6 +1,7 @@
 # CS621Idli
 
-Project is divided into 3 parts
-a. Compression Link
-b. Compression Detection Application
-c. Simulation Verification and Validation
+Project 
+1. PPP network created
+2. Have to implement compreession
+3. Compression detection application
+4. Validation
