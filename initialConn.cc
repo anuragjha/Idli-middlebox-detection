@@ -21,11 +21,13 @@
 #include "ns3/internet-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/flow-monitor-helper.h"
 #include "zlib.h"
+#include "ns3/ipv4-flow-classifier.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("UdpEchoExample");
+NS_LOG_COMPONENT_DEFINE ("UdpExample");
 
 int 
 main (int argc, char *argv[]) 
@@ -36,8 +38,8 @@ main (int argc, char *argv[])
   
         Time::SetResolution (Time::NS);
 
-        LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
-        LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
+        LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
+        LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
         //LogComponentEnable ("SimpleGlobalRoutingExample", LOG_LEVEL_INFO);
         //LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
 
@@ -78,12 +80,17 @@ main (int argc, char *argv[])
         NetDeviceContainer subnet2Devices = p2p.Install(n2);
         NetDeviceContainer subnet3Devices = p2p.Install(n3);
 
-        //Ptr<NetDevice> n = subnet2Devices.Get(0);
-        //Ptr<PointToPointNetDevice> pppNetDevice = n->GetObject<PointToPointNetDevice> ();
-        //Ptr<Queue<Packet>> q = pppNetDevice->GetQueue();
-        
-        //uint32_t qSize=q->GetCurrentSize ().GetValue ();
-        //std::cout<<"Queue size of is "<<qSize<<" at"<<Simulator::Now().GetSeconds()<<std::endl;
+        Ptr<NetDevice> n = subnet2Devices.Get(0);
+        Ptr<PointToPointNetDevice> pppNetDevice = n->GetObject<PointToPointNetDevice> ();
+        Ptr<Queue<Packet>> q = pppNetDevice->GetQueue();
+        Ptr<Packet> p = q->Dequeue ();
+        //p->Print (std::cout);
+
+        //uint32_t size = 1024;
+        //Ptr<Packet> p = Create<Packet> (buffer, size);
+        uint32_t qSize=q->GetCurrentSize ().GetValue ();
+        std::cout<<"Queue size of is "<<qSize<<" at"<<Simulator::Now().GetSeconds()<<std::endl;
+        std::cout<<"packet p is "<<p<<" at"<<Simulator::Now().GetSeconds()<<std::endl;
         //NS_LOG_INFO ("Create nodes.");
         //Ptr<Packet> p = pppNetDevice->m_currentPkt; 
                 //Ptr<Packet> p = q->Dequeue ();
@@ -121,7 +128,7 @@ main (int argc, char *argv[])
 
         Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
-        UdpEchoServerHelper server(9);
+        UdpServerHelper server(9);
         ApplicationContainer serverApp;
         serverApp = server.Install(hosts.Get(3));
         serverApp.Start(Seconds(1.0));
@@ -130,7 +137,7 @@ main (int argc, char *argv[])
         uint32_t packetSize = 1100;
         uint32_t maxPacketCount = 10;
         Time interPacketInterval = Seconds (1.);
-        UdpEchoClientHelper client(subnet3Interfaces.GetAddress(1),9);
+        UdpClientHelper client(subnet3Interfaces.GetAddress(1),9);
         ApplicationContainer clientApp;
         client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
         client.SetAttribute ("Interval", TimeValue (interPacketInterval));
@@ -141,27 +148,14 @@ main (int argc, char *argv[])
 // Users may find it convenient to initialize echo packets with actual data;
 // the below lines suggest how to do this
 //
-  client.SetFill (clientApp.Get (0), "Hello World");
+//  client.SetFill (clientApp.Get (0), "Hello World");
 
 //  client.SetFill (clientApp.Get (0), 0xa5, 1024);
 
 //  uint8_t fill[] = { 0, 1, 2, 3, 4, 5, 6};
 //  client.SetFill (clientApp.Get (0), fill, sizeof(fill), 1024);
-
-                
         //NS_LOG_INFO ("Run Simulation.");
         Simulator::Run();
-        Ptr<NetDevice> n = subnet2Devices.Get(0);
-        Ptr<PointToPointNetDevice> pppNetDevice = n->GetObject<PointToPointNetDevice> ();
-        Ptr<Queue<Packet>> q = pppNetDevice->GetQueue();
-        uint32_t qSize=q->GetCurrentSize ().GetValue ();
-        std::cout<<"Queue size of is "<<qSize<<" at"<<Simulator::Now().GetSeconds()<<std::endl;
-        //uint32_t qSize=q->GetCurrentSize ().GetValue ();
-        //std::cout<<"Queue size of is "<<qSize<<" at"<<Simulator::Now().GetSeconds()<<std::endl;
-        //NS_LOG_INFO ("Create nodes.");
-        //Ptr<Packet> p = pppNetDevice->m_currentPkt; 
-        //Ptr<Packet> p = q->Dequeue ();
-        //std::cout<<"p : "<<p<<"\n\n\n";
         Simulator::Destroy();
         //NS_LOG_INFO ("Done.");
         return 0;
