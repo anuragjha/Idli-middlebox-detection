@@ -32,7 +32,7 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("PointToPointNetDevice1");
+NS_LOG_COMPONENT_DEFINE ("PointToPointNetDeviceCustom");
 
 NS_OBJECT_ENSURE_REGISTERED (PointToPointNetDevice);
 
