@@ -111,6 +111,10 @@ public:
    */
   bool Attach (Ptr<PointToPointChannel> ch);
 
+        //bool GetCompression();
+        //bool GetDecompression();
+        void EnableCompression(void);
+        void EnableDecompression(void);
   /**
    * Attach a queue to the PointToPointNetDevice.
    *
@@ -298,6 +302,7 @@ private:
    * The state of the Net Device transmit state machine.
    */
   TxMachineState m_txMachineState;
+       
 
   /**
    * The data rate that the Net Device uses to simulate packet transmission
@@ -459,6 +464,11 @@ private:
    * Ethernet.
    */
   uint32_t m_mtu;
+
+        //now
+        bool compress = false;
+
+        bool decompress = false;
 
   Ptr<Packet> m_currentPkt; //!< Current packet processed
 

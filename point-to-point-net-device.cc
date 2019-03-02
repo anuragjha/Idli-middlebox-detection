@@ -32,7 +32,7 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("PointToPointNetDeviceCustom");
+NS_LOG_COMPONENT_DEFINE ("PointToPointNetDevice1");
 
 NS_OBJECT_ENSURE_REGISTERED (PointToPointNetDevice);
 
@@ -207,6 +207,17 @@ PointToPointNetDevice::ProcessHeader (Ptr<Packet> p, uint16_t& param)
   return true;
 }
 
+//now
+void 
+PointToPointNetDevice::EnableCompression(void){
+        compress = true;
+}
+
+void 
+PointToPointNetDevice::EnableDecompression(void){
+        decompress = true;
+}
+
 void
 PointToPointNetDevice::DoInitialize (void)
 {
@@ -367,8 +378,16 @@ PointToPointNetDevice::SetReceiveErrorModel (Ptr<ErrorModel> em)
 void
 PointToPointNetDevice::Receive (Ptr<Packet> packet)
 {
+//now
   NS_LOG_FUNCTION (this << packet);
   uint16_t protocol = 0;
+       Ptr<Node> node = GetNode();
+        for (uint32_t i=0; i<node->GetNDevices (); i++)
+{
+  Ptr<NetDevice> dev = node->GetDevice (i);
+
+  NS_LOG_INFO (" Device " << i << " type = " << dev->GetAddress());
+}
 
   if (m_receiveErrorModel && m_receiveErrorModel->IsCorrupt (packet) ) 
     {
@@ -385,7 +404,9 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       // device because it is so simple, but this is not usually the case in
       // more complicated devices.
       //
-
+      packet->Print(std::cout);
+        std::cout << std::endl;
+        std::cout<<"Here";
       m_snifferTrace (packet);
       m_promiscSnifferTrace (packet);
       m_phyRxEndTrace (packet);
@@ -404,13 +425,15 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
 
 //packet -> Print(std::cout);  //to print packet properties
 
-
       //
       // Strip off the point-to-point protocol header and forward this packet
       // up the protocol stack.  Since this is a simple point-to-point link,
       // there is no difference in what the promisc callback sees and what the
       // normal receive callback sees.
       //
+      
+
+
       ProcessHeader (packet, protocol);
 
       if (!m_promiscCallback.IsNull ())
@@ -558,6 +581,7 @@ PointToPointNetDevice::Send (
   NS_LOG_FUNCTION (this << packet << dest << protocolNumber);
   NS_LOG_LOGIC ("p=" << packet << ", dest=" << &dest);
   NS_LOG_LOGIC ("UID is " << packet->GetUid ());
+NS_LOG_INFO("Address:"<<dest);
 
   //
   // If IsLinkUp() is false it means there is no channel to send any packet 
@@ -691,6 +715,7 @@ PointToPointNetDevice::GetMtu (void) const
   return m_mtu;
 }
 
+//modify
 uint16_t
 PointToPointNetDevice::PppToEther (uint16_t proto)
 {
@@ -716,6 +741,4 @@ PointToPointNetDevice::EtherToPpp (uint16_t proto)
     }
   return 0;
 }
-
-
 } // namespace ns3
