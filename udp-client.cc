@@ -26,7 +26,7 @@
 #include "ns3/socket.h"
 #include "ns3/simulator.h"
 #include "ns3/socket-factory.h"
-#include "ns3/packet.h"
+#include "packet.h"
 #include "ns3/uinteger.h"
 #include "udp-client.h"
 #include "seq-ts-header.h"
@@ -35,7 +35,7 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("UdpClient1");
+NS_LOG_COMPONENT_DEFINE ("UdpClientCustom");
 
 NS_OBJECT_ENSURE_REGISTERED (UdpClient);
 
@@ -174,9 +174,21 @@ UdpClient::Send (void)
   NS_ASSERT (m_sendEvent.IsExpired ());
   SeqTsHeader seqTs;
   seqTs.SetSeq (m_sent);
-  Ptr<Packet> p = Create<Packet> (1100); // 8+4 : the size of the seqTs header
+
+ // Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
+ Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> ("hello"),5);
+
+//std::string myString = "hello";
+//std::vector<uint8_t> myVector(myString.begin(), myString.end());
+//uint8_t *buffer = &myVector[0];
+//uint32_t size = 5;
+//Ptr<Packet> p = Create<Packet> (buffer, size);
+
+
+
+
   p->AddHeader (seqTs);
-  NS_LOG_INFO (".........");
+
   std::stringstream peerAddressStringStream;
   if (Ipv4Address::IsMatchingType (m_peerAddress))
     {
@@ -194,6 +206,7 @@ UdpClient::Send (void)
                                     << peerAddressStringStream.str () << " Uid: "
                                     << p->GetUid () << " Time: "
                                     << (Simulator::Now ()).GetSeconds ());
+
     }
   else
     {

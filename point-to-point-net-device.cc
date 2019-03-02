@@ -32,7 +32,7 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("PointToPointNetDevice1");
+NS_LOG_COMPONENT_DEFINE ("PointToPointNetDeviceCustom");
 
 NS_OBJECT_ENSURE_REGISTERED (PointToPointNetDevice);
 
@@ -385,9 +385,7 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       // device because it is so simple, but this is not usually the case in
       // more complicated devices.
       //
-      packet->Print(std::cout);
-        std::cout << std::endl;
-        std::cout<<"Here";
+
       m_snifferTrace (packet);
       m_promiscSnifferTrace (packet);
       m_phyRxEndTrace (packet);
@@ -398,13 +396,21 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       //
       Ptr<Packet> originalPacket = packet->Copy ();
 
+// idli
+//uint8_t *buffer = new uint8_t[packet->GetSize ()];
+////int size = packet->CopyData(buffer, packet->GetSize ());
+//std::string s = std::string(buffer, buffer + packet->GetSize());
+//NS_LOG_INFO (s);
+
+//packet -> Print(std::cout);  //to print packet properties
+
+
       //
       // Strip off the point-to-point protocol header and forward this packet
       // up the protocol stack.  Since this is a simple point-to-point link,
       // there is no difference in what the promisc callback sees and what the
       // normal receive callback sees.
       //
-      
       ProcessHeader (packet, protocol);
 
       if (!m_promiscCallback.IsNull ())
@@ -685,17 +691,10 @@ PointToPointNetDevice::GetMtu (void) const
   return m_mtu;
 }
 
-//modify
 uint16_t
 PointToPointNetDevice::PppToEther (uint16_t proto)
 {
   NS_LOG_FUNCTION_NOARGS();
-  //if(m_address == "10.0.2.2"){
- // NS_LOG_INFO ("packet content: "<< m_currentPkt <<" ");
-        //if (proto == 0x0021){
-               // return 0x4021;        
-       // }
- // }
   switch(proto)
     {
     case 0x0021: return 0x0800;   //IPv4
@@ -717,4 +716,6 @@ PointToPointNetDevice::EtherToPpp (uint16_t proto)
     }
   return 0;
 }
+
+
 } // namespace ns3
