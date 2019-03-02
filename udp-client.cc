@@ -32,6 +32,9 @@
 #include "seq-ts-header.h"
 #include <cstdlib>
 #include <cstdio>
+#include<iostream> 
+#include <sstream>  // for string streams 
+#include <string> 
 
 namespace ns3 {
 
@@ -176,15 +179,19 @@ UdpClient::Send (void)
   seqTs.SetSeq (m_sent);
 
  // Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
- Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> ("hello"),5);
 
-//std::string myString = "hello";
-//std::vector<uint8_t> myVector(myString.begin(), myString.end());
-//uint8_t *buffer = &myVector[0];
-//uint32_t size = 5;
-//Ptr<Packet> p = Create<Packet> (buffer, size);
+// idli
 
+//Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> ("hello"),5);
 
+std::string payload;
+for(int n = 0; n<5; n++) { //1100 range
+        payload += std::to_string(rand()%2);      
+}
+//std::cout<<"payload:"<<payload<<std::endl;
+Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),5);
+
+////
 
 
   p->AddHeader (seqTs);
