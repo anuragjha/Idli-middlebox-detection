@@ -182,25 +182,31 @@ UdpClient::Send (void)
 
 // idli 
 //static bool isHighEntropy;
-  isHighEntropy = false;
+
+
+std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<<counter<<"==============="<<std::endl;
+counter = counter +1;
+
+
+  isHighEntropy = true; //read from config
   Ptr<Packet> p;
   std::string payload;
   
   if (isHighEntropy == true) {
     //creating random byte payload    
-    for(int n = 0; n<5; n++) { //1100 range
+    for(int n = 0; n<1100; n++) { //1100 range
         payload += std::to_string(rand()%2);      
     }
   
   } else {
       //creating all 0s payload     
-    for(int n = 0; n<5; n++) { //1100 range
+    for(int n = 0; n<1100; n++) { //1100 range
         payload += std::to_string(0);      
     }
   
   }
   //std::cout<<"payload:"<<payload<<std::endl;
-   p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),5);   
+   p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),1100);   
 
 
 // idli

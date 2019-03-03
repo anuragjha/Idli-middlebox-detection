@@ -64,6 +64,9 @@ PppHeader::Print (std::ostream &os) const
     case 0x0021: /* IPv4 */
       proto = "IP (0x0021)";
       break;
+    case 0x4021: /* IPv4 compression */ //idli
+      proto = "IP (0x4021)";
+      break;
     case 0x0057: /* IPv6 */
       proto = "IPv6 (0x0057)";
       break;

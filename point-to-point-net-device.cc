@@ -440,6 +440,28 @@ packet->RemoveHeader(ppp);
 //packet->RemoveHeader(ppp);
   //std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
 
+//getting data from packet //idliidli ==>
+
+uint8_t *buffer = new uint8_t[packet->GetSize ()];
+uint32_t size = packet->CopyData(buffer, packet->GetSize ());
+//std::cout<<"Received Size:::::::::::::::::::::"<<size<<std::endl;
+std::string str = std::string(buffer, buffer+packet->GetSize());
+//std::cout<<"Received full data :::::::::::::::::::::"<<str<<std::endl;
+std::string str2 = str.substr (size-1100,size); 
+//std::cout<<"Received data =>"<<str2<<std::endl;
+
+
+/////
+//uint8_t *buffer = new uint8_t[packet->GetSize ()];
+//packet->CopyData(buffer, packet->GetSize ());
+//std::string s = std::string((char*)buffer);
+//std::cout<<"Received:::::::::::::::::::::"<<s<<std::endl;
+/////
+//uint8_t *buffer = new uint8_t[packet->GetSize ()]; 
+//packet->CopyData (buffer, packet->GetSize ()); 
+//std::string str = std::string((char*)buffer);
+//std::cout<<"Received::::: ==>"<<str<<std::endl;
+
 } else {
 
 }

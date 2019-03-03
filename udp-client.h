@@ -43,6 +43,16 @@ class Packet;
 class UdpClient : public Application
 {
 public:
+
+
+//idli
+
+int counter = 0;
+
+//idli
+
+
+
   /**
    * \brief Get the type ID.
    * \return the object TypeId

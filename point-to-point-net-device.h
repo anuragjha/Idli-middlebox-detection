@@ -63,6 +63,18 @@ class ErrorModel;
 class PointToPointNetDevice : public NetDevice
 {
 public:
+
+//idli
+        bool GetCompression(void);
+        bool GetDecompression(void);
+        void EnableCompression(void);
+        void EnableDecompression(void);
+        
+//idli
+  //idli
+
+
+
   /**
    * \brief Get the TypeId
    *
@@ -111,10 +123,6 @@ public:
    */
   bool Attach (Ptr<PointToPointChannel> ch);
 
-        //bool GetCompression();
-        //bool GetDecompression();
-        void EnableCompression(void);
-        void EnableDecompression(void);
   /**
    * Attach a queue to the PointToPointNetDevice.
    *
@@ -233,6 +241,15 @@ private:
   virtual void DoDispose (void);
 
 private:
+        
+
+       //idli
+        bool compress = false;
+
+        bool decompress = false;
+
+        //idli
+
 
   /**
    * \returns the address of the remote device connected to this device
@@ -465,10 +482,7 @@ private:
    */
   uint32_t m_mtu;
 
-        //now
-        bool compress = false;
 
-        bool decompress = false;
 
   Ptr<Packet> m_currentPkt; //!< Current packet processed
 

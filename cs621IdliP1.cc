@@ -58,10 +58,10 @@ Packet::EnablePrinting();
         //Ptr<PointToPointNetDevice> pppNetDevice = n->GetObject<PointToPointNetDevice> ();
 	Ptr<PointToPointNetDevice> ppp1 = DynamicCast<PointToPointNetDevice>(ndc12.Get (0));
 	ppp1->EnableCompression();
-	bool compress = ppp1->GetCompress();
+	bool compress = ppp1->GetCompression();
 	Ptr<PointToPointNetDevice> ppp2 = DynamicCast<PointToPointNetDevice> (ndc12.Get (1));
 	ppp2->EnableDecompression();
-	bool decompress = ppp2->GetDecompress();
+	bool decompress = ppp2->GetDecompression();
 	std::cout<<"Compress:"<<compress<<std::endl;
 	std::cout<<"Decompress:"<<decompress<<std::endl;
 	//idli
@@ -91,18 +91,18 @@ Packet::EnablePrinting();
   	ApplicationContainer serverApps = server.Install (nodes.Get (3));
 
   	serverApps.Start (Seconds (1.0));
-  	serverApps.Stop (Seconds (10.0));
+  	serverApps.Stop (Seconds (100.0));
 
-	uint32_t MaxPacketSize = 1024;
-   	Time interPacketInterval = Seconds (1.0);
-   	uint32_t maxPacketCount = 5;
+	uint32_t MaxPacketSize = 1100+7;//5+7;
+   	Time interPacketInterval = Seconds (0.001);
+   	uint32_t maxPacketCount = 3;
  	UdpClientHelper client (ifc23.GetAddress(1), port);
  	client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
     client.SetAttribute ("Interval", TimeValue (interPacketInterval));
   	client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   	ApplicationContainer clientApps = client.Install (nodes.Get (0));
   	clientApps.Start (Seconds (2.0));
-  	clientApps.Stop (Seconds (10.0));
+  	clientApps.Stop (Seconds (100.0));
 
     //start and then destroy simulator
 	Simulator::Run();
