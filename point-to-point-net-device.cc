@@ -189,7 +189,7 @@ PointToPointNetDevice::~PointToPointNetDevice ()
 }
 
 void
-PointToPointNetDevice::AddHeader (Ptr<Packet> p, uint16_t protocolNumber)
+PointToPointNetDevice::AddHeader (Ptr<Packet> p, uint16_t protocolNumber) //idli1
 {
   NS_LOG_FUNCTION (this << p << protocolNumber);
   PppHeader ppp;
@@ -207,7 +207,7 @@ PointToPointNetDevice::ProcessHeader (Ptr<Packet> p, uint16_t& param)
   return true;
 }
 
-//now
+//idli
 void 
 PointToPointNetDevice::EnableCompression(void){
         compress = true;
@@ -217,6 +217,20 @@ void
 PointToPointNetDevice::EnableDecompression(void){
         decompress = true;
 }
+
+bool
+PointToPointNetDevice::GetCompression(void){
+       return compress;
+}
+
+bool 
+PointToPointNetDevice::GetDecompression(void){
+       return decompress;
+}
+
+
+
+//idli
 
 void
 PointToPointNetDevice::DoInitialize (void)
@@ -378,7 +392,7 @@ PointToPointNetDevice::SetReceiveErrorModel (Ptr<ErrorModel> em)
 void
 PointToPointNetDevice::Receive (Ptr<Packet> packet)
 {
-//now
+//idli
   NS_LOG_FUNCTION (this << packet);
   uint16_t protocol = 0;
        Ptr<Node> node = GetNode();
@@ -388,7 +402,7 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
 
   NS_LOG_INFO (" Device " << i << " type = " << dev->GetAddress());
 }
-
+//idli
   if (m_receiveErrorModel && m_receiveErrorModel->IsCorrupt (packet) ) 
     {
       // 
@@ -404,9 +418,35 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       // device because it is so simple, but this is not usually the case in
       // more complicated devices.
       //
-      packet->Print(std::cout);
-        std::cout << std::endl;
-        std::cout<<"Here";
+      
+// idli
+std::cout<<"in receieve --> ";
+PppHeader ppp;
+packet->PeekHeader(ppp);
+//ppp.Print(std::cout);
+std::cout << ppp << std::endl;
+std::cout << ppp.GetProtocol() << std::endl;
+
+// todo
+if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet has to be compressed
+  std::cout << std::endl;
+  std::cout << "DeCompression needed";
+  std::cout << std::endl;
+        
+//idliidli
+    std::cout << "Packet before removing header:" << *packet<<std::endl;
+packet->RemoveHeader(ppp);
+  std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
+//packet->RemoveHeader(ppp);
+  //std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
+
+} else {
+
+}
+
+//  idli    
+
+
       m_snifferTrace (packet);
       m_promiscSnifferTrace (packet);
       m_phyRxEndTrace (packet);
@@ -417,14 +457,6 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       //
       Ptr<Packet> originalPacket = packet->Copy ();
 
-// idli
-//uint8_t *buffer = new uint8_t[packet->GetSize ()];
-////int size = packet->CopyData(buffer, packet->GetSize ());
-//std::string s = std::string(buffer, buffer + packet->GetSize());
-//NS_LOG_INFO (s);
-
-//packet -> Print(std::cout);  //to print packet properties
-
       //
       // Strip off the point-to-point protocol header and forward this packet
       // up the protocol stack.  Since this is a simple point-to-point link,
@@ -432,7 +464,7 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       // normal receive callback sees.
       //
       
-
+      
 
       ProcessHeader (packet, protocol);
 
@@ -593,11 +625,37 @@ NS_LOG_INFO("Address:"<<dest);
       return false;
     }
 
+
+std::cout <<std::endl<<std::endl<<"here:::::::"<<protocolNumber<<std::endl<<std::endl;
   //
   // Stick a point to point protocol header on the packet in preparation for
   // shoving it out the door.
   //
   AddHeader (packet, protocolNumber);
+
+
+//idli
+std::cout<<"in Send --> ";
+PppHeader ppp;
+packet->PeekHeader(ppp);
+//ppp.Print(std::cout);
+std::cout << ppp.GetProtocol() << std::endl;
+
+if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has to be compressed
+  std::cout << std::endl;
+  std::cout << "Compression needed"<<std::endl;
+  std::cout << "Packet before removing header:" << *packet<<std::endl;
+//packet->RemoveHeader(ppp);
+  //std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
+AddHeader (packet, 2049); //idli
+        std::cout << std::endl <<"Packet after adding new header:" << *packet<<std::endl;
+  
+  std::cout << std::endl;
+
+} else {
+
+}
+//idli
 
   m_macTxTrace (packet);
 
@@ -723,6 +781,7 @@ PointToPointNetDevice::PppToEther (uint16_t proto)
   switch(proto)
     {
     case 0x0021: return 0x0800;   //IPv4
+    case 0x4021 : return 0x0800;   // idli - compress but IPv4
     case 0x0057: return 0x86DD;   //IPv6
     default: NS_ASSERT_MSG (false, "PPP Protocol number not defined!");
     }
@@ -736,6 +795,7 @@ PointToPointNetDevice::EtherToPpp (uint16_t proto)
   switch(proto)
     {
     case 0x0800: return 0x0021;   //IPv4
+    case 0x0801: return 0x4021;   //IPv4
     case 0x86DD: return 0x0057;   //IPv6
     default: NS_ASSERT_MSG (false, "PPP Protocol number not defined!");
     }
