@@ -47,8 +47,9 @@ public:
    * \brief Get the type ID.
    * \return the object TypeId
    */
-  static TypeId GetTypeId (void);
 
+  static TypeId GetTypeId (void);
+  
   UdpClient ();
 
   virtual ~UdpClient ();
@@ -87,6 +88,11 @@ private:
   Address m_peerAddress; //!< Remote peer address
   uint16_t m_peerPort; //!< Remote peer port
   EventId m_sendEvent; //!< Event to send the next packet
+  
+   //idli
+  bool isHighEntropy; // for entropy
+   //idli
+  
 
 };
 

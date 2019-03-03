@@ -180,18 +180,30 @@ UdpClient::Send (void)
 
  // Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
 
-// idli
-
-//Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> ("hello"),5);
-
-std::string payload;
-for(int n = 0; n<5; n++) { //1100 range
+// idli 
+//static bool isHighEntropy;
+  isHighEntropy = false;
+  Ptr<Packet> p;
+  std::string payload;
+  
+  if (isHighEntropy == true) {
+    //creating random byte payload    
+    for(int n = 0; n<5; n++) { //1100 range
         payload += std::to_string(rand()%2);      
-}
-//std::cout<<"payload:"<<payload<<std::endl;
-Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),5);
+    }
+  
+  } else {
+      //creating all 0s payload     
+    for(int n = 0; n<5; n++) { //1100 range
+        payload += std::to_string(0);      
+    }
+  
+  }
+  //std::cout<<"payload:"<<payload<<std::endl;
+   p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),5);   
 
-////
+
+// idli
 
 
   p->AddHeader (seqTs);
