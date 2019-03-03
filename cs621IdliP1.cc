@@ -53,7 +53,7 @@ Packet::EnablePrinting();
     pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
     NetDeviceContainer ndc23 = pointToPoint.Install (nodes.Get (2), nodes.Get (3));
 
-
+	//idli
 	//Ptr<NetDevice> n = ndc12.Get(0);
         //Ptr<PointToPointNetDevice> pppNetDevice = n->GetObject<PointToPointNetDevice> ();
 	Ptr<PointToPointNetDevice> ppp1 = DynamicCast<PointToPointNetDevice>(ndc12.Get (0));
@@ -64,6 +64,7 @@ Packet::EnablePrinting();
 	bool decompress = ppp2->GetDecompress();
 	std::cout<<"Compress:"<<compress<<std::endl;
 	std::cout<<"Decompress:"<<decompress<<std::endl;
+	//idli
     //use ipv4addresshelper for allocation of ip address
     Ipv4AddressHelper address;
     address.SetBase("10.1.1.0", "255.255.255.0");
