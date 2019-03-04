@@ -29,6 +29,11 @@
 #include "point-to-point-net-device.h"
 #include "point-to-point-channel.h"
 #include "ppp-header.h"
+#include "ipv4-header.h"
+#include "udp-header.h"
+#include "seq-ts-header.h"
+#include "zlib.h"
+
 
 namespace ns3 {
 
@@ -450,7 +455,7 @@ uint32_t size = packet->CopyData(buffer, packet->GetSize ());
 //std::cout<<"Received Size:::::::::::::::::::::"<<size<<std::endl;
 std::string str = std::string(buffer, buffer+packet->GetSize());
 //std::cout<<"Received full data :::::::::::::::::::::"<<str<<std::endl;
-std::string str2 = str.substr (size-1100,size); 
+std::string str2 = str.substr (42,size); 
 //std::cout<<"Received data =>"<<str2<<std::endl;
 
 
@@ -672,8 +677,8 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
   std::cout << "Packet before removing header:" << *packet<<std::endl;
   packet->RemoveHeader(ppp);
   std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
-  AddHeader (packet, 2049); //idli
-  std::cout << std::endl <<"Packet after adding new header:" << *packet<<std::endl;
+  //AddHeader (packet, 2049); //idli
+  //std::cout << std::endl <<"Packet after adding new header:" << *packet<<std::endl;
   
   ////
   
@@ -687,9 +692,51 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
   std::string str2 = str.substr (size-1100,size); 
   //std::cout<<"Received data =>"<<str2<<std::endl;
   //
+  str2 = "0x0021"+str2;
+  int n = str2.length();  
+      
+    // declaring character array 
+    char uncompressed_char_array[n+1];  
+    char compressed_char_array[n+1];  
+      
+    // copying the contents of the  
+    // string to char array 
+    strcpy(uncompressed_char_array, str2.c_str()); 
+    
+  std::string compressedData;
   
-  str2 = "Hack Hack Hack Hack .....";
-  Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (str2.c_str()),str2.length()); 
+      std::printf("\n----------\n\n");
+
+    // STEP 1.
+    // deflate a into b. (that is, compress a into b)
+    
+    // zlib struct
+    z_stream defstream;
+    defstream.zalloc = Z_NULL;
+    defstream.zfree = Z_NULL;
+    defstream.opaque = Z_NULL;
+    // setup "a" as the input and "b" as the compressed output
+    defstream.avail_in = (uInt)strlen(uncompressed_char_array)+1; // size of input, string + terminator
+    defstream.next_in = (Bytef *)uncompressed_char_array; // input char array
+    defstream.avail_out = (uInt)sizeof(compressed_char_array); // size of output
+    defstream.next_out = (Bytef *)compressed_char_array; // output char array
+    
+    // the actual compression work.
+    deflateInit(&defstream, Z_BEST_COMPRESSION);
+    deflate(&defstream, Z_FINISH);
+    deflateEnd(&defstream);
+     
+    // This is one way of getting the size of the output
+    std::printf("Compressed size is: %lu\n", strlen(compressed_char_array));
+    std::printf("Compressed string is: %s\n", compressed_char_array);
+    std::string str3 = compressed_char_array;
+    
+
+    std::printf("\n----------\n\n");
+  
+  //str2 = "Hack Hack Happy Hack Hack Happy .....";
+  //Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (str2.c_str()),str2.length()); 
+  Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (str3.c_str()),str3.length()); 
   
   //iterate through packet headers - add it to p header -> then point packet to p  
   //idli todo /////
@@ -703,7 +750,30 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
 
   ///  compress data 
   
-
+   // Remove IPV4 Header
+    Ipv4Header ipHeader;
+    packet-> RemoveHeader(ipHeader);
+    int ipSize = ipHeader.GetPayloadSize();// - packet-> GetSize();
+    std::cout << "ipSize ::::::: " << ipSize;
+      std::cout <<std::endl <<std::endl<< "Ipv4 :::" << ipHeader<<std::endl;
+    
+    // Remove UDP Header
+    UdpHeader udpHeader;
+    packet-> RemoveHeader(udpHeader);
+      std::cout << "udpHeader :::" << udpHeader<<std::endl;
+      
+      //Remove seq-ts Header
+      SeqTsHeader seqtsHeader;
+    packet-> RemoveHeader(seqtsHeader);
+      std::cout << "seqtsHeader :::" << seqtsHeader<<std::endl;
+    
+    
+    //adding headers to new packet - idli
+    p-> AddHeader(seqtsHeader);
+    p-> AddHeader(udpHeader);
+    p-> AddHeader(ipHeader);
+    
+    
   AddHeader (p, 2049);
 
   packet = p;
