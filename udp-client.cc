@@ -207,6 +207,7 @@ counter = counter +1;
   }
   //std::cout<<"payload:"<<payload<<std::endl;
    p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),1100);   
+   std::cout << "Packet initial - at client side : " << *p<< std::endl;
 
 
 // idli

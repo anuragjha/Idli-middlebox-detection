@@ -675,6 +675,45 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
   AddHeader (packet, 2049); //idli
   std::cout << std::endl <<"Packet after adding new header:" << *packet<<std::endl;
   
+  ////
+  
+  
+  //getting data from packet //idliidli ==>
+  uint8_t *buffer = new uint8_t[packet->GetSize ()];
+  uint32_t size = packet->CopyData(buffer, packet->GetSize ());
+  //std::cout<<"Received Size:::::::::::::::::::::"<<size<<std::endl;
+  std::string str = std::string(buffer, buffer+packet->GetSize());
+  //std::cout<<"Received full data :::::::::::::::::::::"<<str<<std::endl;
+  std::string str2 = str.substr (size-1100,size); 
+  //std::cout<<"Received data =>"<<str2<<std::endl;
+  //
+  
+  str2 = "Hack Hack Hack Hack .....";
+  Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (str2.c_str()),str2.length()); 
+  
+  //iterate through packet headers - add it to p header -> then point packet to p  
+  //idli todo /////
+  //Ipv4Header ipv4;
+  //packet->RemoveHeader(ipv4);
+  //Ptr<Trailer> trail;
+  //packet->RemoveTrailer(trail);
+  //std::cout<< "RemoveTrailerr" << trail <<std::endl;
+  
+  //std::cout<< "Ipv4 header" << ipv4 <<std::endl;
+
+  ///  compress data 
+  
+
+  AddHeader (p, 2049);
+
+  packet = p;
+  std::cout <<std::endl;
+  std::cout << "NEW CREATED PACKET :::" << *packet<<std::endl;
+  
+  ////
+  //// idli todo////
+  
+  
   std::cout << std::endl;
 
 } else {
