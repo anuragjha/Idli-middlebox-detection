@@ -437,6 +437,9 @@ if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet
     std::cout << "Packet before removing header:" << *packet<<std::endl;
 packet->RemoveHeader(ppp);
   std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
+ AddHeader(packet, 2048);
+  std::cout << std::endl <<"Packet after uncompress header:" << *packet<<std::endl; 
+  
 //packet->RemoveHeader(ppp);
   //std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
 
@@ -667,15 +670,16 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
   std::cout << std::endl;
   std::cout << "Compression needed"<<std::endl;
   std::cout << "Packet before removing header:" << *packet<<std::endl;
-//packet->RemoveHeader(ppp);
-  //std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
-AddHeader (packet, 2049); //idli
-        std::cout << std::endl <<"Packet after adding new header:" << *packet<<std::endl;
+  packet->RemoveHeader(ppp);
+  std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
+  AddHeader (packet, 2049); //idli
+  std::cout << std::endl <<"Packet after adding new header:" << *packet<<std::endl;
   
   std::cout << std::endl;
 
 } else {
-
+  //AddHeader (packet, protocolNumber);
+  //std::cout << std::endl <<"Packet after adding normal header:" << *packet<<std::endl;
 }
 //idli
 
@@ -805,7 +809,7 @@ PointToPointNetDevice::PppToEther (uint16_t proto)
     case 0x0021: return 0x0800;   //IPv4
     case 0x4021 : return 0x0800;   // idli - compress but IPv4
     case 0x0057: return 0x86DD;   //IPv6
-    default: NS_ASSERT_MSG (false, "PPP Protocol number not defined!");
+    default: NS_ASSERT_MSG (false, "PPP Protocol number not defined1!");
     }
   return 0;
 }
@@ -817,10 +821,11 @@ PointToPointNetDevice::EtherToPpp (uint16_t proto)
   switch(proto)
     {
     case 0x0800: return 0x0021;   //IPv4
-    case 0x0801: return 0x4021;   //IPv4
+    case 0x0801: return 0x4021;   //IPv4 compressed //idli
     case 0x86DD: return 0x0057;   //IPv6
-    default: NS_ASSERT_MSG (false, "PPP Protocol number not defined!");
+    default: NS_ASSERT_MSG (false, "PPP Protocol number not defined2!");
     }
   return 0;
 }
 } // namespace ns3
+
