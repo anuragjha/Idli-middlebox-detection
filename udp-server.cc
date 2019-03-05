@@ -181,7 +181,8 @@ UdpServer::HandleRead (Ptr<Socket> socket)
 uint8_t *buffer = new uint8_t[packet->GetSize ()];
           packet->CopyData(buffer, packet->GetSize ());
           std::string s = std::string(buffer, buffer+packet->GetSize());
-          std::cout<<"Received1:"<<s.substr(12, s.length()-1)<<std::endl;
+          std::cout<<"Data at udp server - Received1:"<<s.substr(12, s.length()-1)<<std::endl;
+          //12 - is the length of seq-tsheader header 
 //
 
 

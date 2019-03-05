@@ -32,7 +32,8 @@
 #include "ipv4-header.h"
 #include "udp-header.h"
 #include "seq-ts-header.h"
-#include "zlib.h"
+//#include "zlib.h"
+#include "../../usr/include/zlib.h"
 
 
 namespace ns3 {
@@ -425,6 +426,12 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       //
       
 // idli
+
+int compressedpacketSize = 0;
+int pppHeaderSize = 0;
+int ipv4HeaderSize = 0;
+int udpHeaderSize = 0;
+int seqtsHeaderSize = 0;
 std::cout<<"in receieve --> ";
 PppHeader ppp;
 packet->PeekHeader(ppp);
@@ -440,35 +447,74 @@ if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet
         
 //idliidli
     std::cout << "Packet before removing header:" << *packet<<std::endl;
-packet->RemoveHeader(ppp);
-  std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
- AddHeader(packet, 2048);
-  std::cout << std::endl <<"Packet after uncompress header:" << *packet<<std::endl; 
-  
-//packet->RemoveHeader(ppp);
-  //std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
+    compressedpacketSize = packet->GetSize ();
+    std::cout << "compressedpacketSize:" << compressedpacketSize<<std::endl;
+    
+  //strip all headers of original packet  
+  // Remove PPP Header
+  packet->RemoveHeader(ppp);
+  pppHeaderSize = compressedpacketSize - packet->GetSize ();
+   std::cout << "pppHeaderSize:" << pppHeaderSize<<std::endl;
+  std::cout << std::endl <<"Packet after removing ppp header:" << *packet<<std::endl;
 
+   // Remove IPV4 Header
+    Ipv4Header ipv4Header;
+    packet-> RemoveHeader(ipv4Header);
+    //int ipSize = ipv4Header.GetPayloadSize();// - packet-> GetSize();
+    //std::cout << "::ipSize ::::::: " << ipSize<<std::endl;
+    ipv4HeaderSize = compressedpacketSize - pppHeaderSize - packet->GetSize ();
+    std::cout << "ipv4HeaderSize:" << ipv4HeaderSize<<std::endl;
+    std::cout << "Ipv4 :::" << ipv4Header<<std::endl;
+      
+      
+    // Remove UDP Header
+    UdpHeader udpHeader;
+    packet-> RemoveHeader(udpHeader);
+    udpHeaderSize = compressedpacketSize - pppHeaderSize - ipv4HeaderSize - packet->GetSize ();
+    std::cout << "udpHeaderSize:" << udpHeaderSize<<std::endl;
+    std::cout << "::udpHeader :::" << udpHeader<<std::endl;
+    
+    
+     //Remove seq-ts Header
+     SeqTsHeader seqtsHeader;
+     packet-> RemoveHeader(seqtsHeader);
+     seqtsHeaderSize = compressedpacketSize - pppHeaderSize - ipv4HeaderSize - udpHeaderSize -packet->GetSize ();
+      std::cout << "seqtsHeaderSize:" << seqtsHeaderSize<<std::endl;
+     std::cout << "::seqtsHeader :::" << seqtsHeader<<std::endl;
+      
 //getting data from packet //idliidli ==>
 
 uint8_t *buffer = new uint8_t[packet->GetSize ()];
 uint32_t size = packet->CopyData(buffer, packet->GetSize ());
-//std::cout<<"Received Size:::::::::::::::::::::"<<size<<std::endl;
+std::cout<<"Received Size:::::::::::::::::::::"<<size<<std::endl;
 std::string str = std::string(buffer, buffer+packet->GetSize());
 //std::cout<<"Received full data :::::::::::::::::::::"<<str<<std::endl;
-std::string str2 = str.substr (42,size); 
-//std::cout<<"Received data =>"<<str2<<std::endl;
+std::string str2 = str;//str.substr (seqtsHeaderSize,size);//  !!!!!!!!!!!!!!!
+std::cout<<"router Received data =>"<<"length : "<<str2.length()<<"msg : "<<str2<<std::endl<<std::endl;
+
+// data 
+//str2 = str.substr (42,size) + str.substr (42,size) + str.substr (42,size) + str.substr (42,size);
+str2 = str + str + str + str + str;
+std::cout<<":::::::::CHanging data (should be uncompressed data)"<<std::endl<<str2<<std::endl;
+
+//creating a new packet 
+Ptr<Packet> puc = Create<Packet> (reinterpret_cast<const uint8_t*> (str2.c_str()),str2.length());
+    
+    
+    //adding headers to new packet - idli
+    puc-> AddHeader(seqtsHeader);
+    puc-> AddHeader(udpHeader);
+    puc-> AddHeader(ipv4Header);
+    
+    
+  AddHeader (puc, 2048);
+
+  packet = puc; // assigning to old packet
+  std::cout <<std::endl;
+  std::cout << "NEW UN-COMPRESSED CREATED PACKET :::" << *packet<<std::endl;
 
 
-/////
-//uint8_t *buffer = new uint8_t[packet->GetSize ()];
-//packet->CopyData(buffer, packet->GetSize ());
-//std::string s = std::string((char*)buffer);
-//std::cout<<"Received:::::::::::::::::::::"<<s<<std::endl;
-/////
-//uint8_t *buffer = new uint8_t[packet->GetSize ()]; 
-//packet->CopyData (buffer, packet->GetSize ()); 
-//std::string str = std::string((char*)buffer);
-//std::cout<<"Received::::: ==>"<<str<<std::endl;
+//todo idli
 
 } else {
 
@@ -691,7 +737,7 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
   //std::cout<<"Received full data :::::::::::::::::::::"<<str<<std::endl;
   std::string str2 = str.substr (size-1100,size); 
   //std::cout<<"Received data =>"<<str2<<std::endl;
-  //
+  // idli zlib
   str2 = "0x0021"+str2;
   int n = str2.length();  
       
@@ -737,18 +783,7 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
   //str2 = "Hack Hack Happy Hack Hack Happy .....";
   //Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (str2.c_str()),str2.length()); 
   Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (str3.c_str()),str3.length()); 
-  
-  //iterate through packet headers - add it to p header -> then point packet to p  
-  //idli todo /////
-  //Ipv4Header ipv4;
-  //packet->RemoveHeader(ipv4);
-  //Ptr<Trailer> trail;
-  //packet->RemoveTrailer(trail);
-  //std::cout<< "RemoveTrailerr" << trail <<std::endl;
-  
-  //std::cout<< "Ipv4 header" << ipv4 <<std::endl;
 
-  ///  compress data 
   
    // Remove IPV4 Header
     Ipv4Header ipHeader;
@@ -778,7 +813,7 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
 
   packet = p;
   std::cout <<std::endl;
-  std::cout << "NEW CREATED PACKET :::" << *packet<<std::endl;
+  std::cout << "NEW COMPRESSED CREATED PACKET :::" << *packet<<std::endl;
   
   ////
   //// idli todo////
