@@ -32,8 +32,10 @@
 #include "ipv4-header.h"
 #include "udp-header.h"
 #include "seq-ts-header.h"
-//#include "zlib.h"
-#include "../../usr/include/zlib.h"
+#include "zconf.h"
+#include "zlib.h"
+
+//#include "deflate.h"
 
 
 namespace ns3 {
@@ -425,96 +427,76 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       // more complicated devices.
       //
       
-// idli
+  // idli
+  std::cout<<"in receieve --> ";
 
-int compressedpacketSize = 0;
-int pppHeaderSize = 0;
-int ipv4HeaderSize = 0;
-int udpHeaderSize = 0;
-int seqtsHeaderSize = 0;
-std::cout<<"in receieve --> ";
-PppHeader ppp;
-packet->PeekHeader(ppp);
-//ppp.Print(std::cout);
-std::cout << ppp << std::endl;
-std::cout << ppp.GetProtocol() << std::endl;
 
-// todo
+
+  //declaring ppp header
+  PppHeader ppp;
+  packet->PeekHeader(ppp);
+
+
 if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet has to be compressed
-  std::cout << std::endl;
-  std::cout << "DeCompression needed";
-  std::cout << std::endl;
-        
-//idliidli
-    std::cout << "Packet before removing header:" << *packet<<std::endl;
-    compressedpacketSize = packet->GetSize ();
-    std::cout << "compressedpacketSize:" << compressedpacketSize<<std::endl;
+
+  std::cout << std::endl<< "DeCompression needed"<< std::endl;
+  
+  //declaring packet and header size
+  //int packetSize;
+  //int pppHeaderSize;
+  //int ipv4HeaderSize;
+  //int udpHeaderSize;
+  //int seqTsHeaderSize;
     
-  //strip all headers of original packet  
-  // Remove PPP Header
+  //declaring header variables
+  Ipv4Header ipv4Header;
+  UdpHeader udpHeader;
+  SeqTsHeader seqTsHeader;
+  
+  //packetSize = packet -> GetSize();
+  //std::cout << std::endl <<"Packet after removing headers:" << *packet<<std::endl;
+       
   packet->RemoveHeader(ppp);
-  pppHeaderSize = compressedpacketSize - packet->GetSize ();
-   std::cout << "pppHeaderSize:" << pppHeaderSize<<std::endl;
-  std::cout << std::endl <<"Packet after removing ppp header:" << *packet<<std::endl;
+  //pppHeaderSize = packetSize - packet -> GetSize ();
+  
+  packet->RemoveHeader(ipv4Header);
+  //ipv4HeaderSize = packetSize - pppHeaderSize - packet -> GetSize ();
+  
+  packet->RemoveHeader(udpHeader);
+  //udpHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - packet -> GetSize ();
+  
+  packet->RemoveHeader(seqTsHeader);
+  //seqTsHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - udpHeaderSize -packet -> GetSize ();
 
-   // Remove IPV4 Header
-    Ipv4Header ipv4Header;
-    packet-> RemoveHeader(ipv4Header);
-    //int ipSize = ipv4Header.GetPayloadSize();// - packet-> GetSize();
-    //std::cout << "::ipSize ::::::: " << ipSize<<std::endl;
-    ipv4HeaderSize = compressedpacketSize - pppHeaderSize - packet->GetSize ();
-    std::cout << "ipv4HeaderSize:" << ipv4HeaderSize<<std::endl;
-    std::cout << "Ipv4 :::" << ipv4Header<<std::endl;
-      
-      
-    // Remove UDP Header
-    UdpHeader udpHeader;
-    packet-> RemoveHeader(udpHeader);
-    udpHeaderSize = compressedpacketSize - pppHeaderSize - ipv4HeaderSize - packet->GetSize ();
-    std::cout << "udpHeaderSize:" << udpHeaderSize<<std::endl;
-    std::cout << "::udpHeader :::" << udpHeader<<std::endl;
-    
-    
-     //Remove seq-ts Header
-     SeqTsHeader seqtsHeader;
-     packet-> RemoveHeader(seqtsHeader);
-     seqtsHeaderSize = compressedpacketSize - pppHeaderSize - ipv4HeaderSize - udpHeaderSize -packet->GetSize ();
-      std::cout << "seqtsHeaderSize:" << seqtsHeaderSize<<std::endl;
-     std::cout << "::seqtsHeader :::" << seqtsHeader<<std::endl;
-      
-//getting data from packet //idliidli ==>
+  //getting data from packet //idliidli ==>
+  uint8_t *buffer = new uint8_t[packet->GetSize ()];
+  uint32_t dataSize = packet->CopyData(buffer, packet->GetSize ());
+  std::string data = std::string(buffer, buffer+packet->GetSize());
+  std::cout<<"Router2 original packet Data Size : "<<dataSize<<std::endl;
+  std::cout<<"Received data : "<<data<<std::endl;
+  
+  ////
+  // uncompressing data 
+  ////
+  
+  std::string ucData = data + data  + data + data + data;
 
-uint8_t *buffer = new uint8_t[packet->GetSize ()];
-uint32_t size = packet->CopyData(buffer, packet->GetSize ());
-std::cout<<"Received Size:::::::::::::::::::::"<<size<<std::endl;
-std::string str = std::string(buffer, buffer+packet->GetSize());
-//std::cout<<"Received full data :::::::::::::::::::::"<<str<<std::endl;
-std::string str2 = str;//str.substr (seqtsHeaderSize,size);//  !!!!!!!!!!!!!!!
-std::cout<<"router Received data =>"<<"length : "<<str2.length()<<"msg : "<<str2<<std::endl<<std::endl;
-
-// data 
-//str2 = str.substr (42,size) + str.substr (42,size) + str.substr (42,size) + str.substr (42,size);
-str2 = str + str + str + str + str;
-std::cout<<":::::::::CHanging data (should be uncompressed data)"<<std::endl<<str2<<std::endl;
-
-//creating a new packet 
-Ptr<Packet> puc = Create<Packet> (reinterpret_cast<const uint8_t*> (str2.c_str()),str2.length());
-    
-    
-    //adding headers to new packet - idli
-    puc-> AddHeader(seqtsHeader);
-    puc-> AddHeader(udpHeader);
-    puc-> AddHeader(ipv4Header);
-    
-    
-  AddHeader (puc, 2048);
-
-  packet = puc; // assigning to old packet
-  std::cout <<std::endl;
-  std::cout << "NEW UN-COMPRESSED CREATED PACKET :::" << *packet<<std::endl;
-
-
-//todo idli
+   //creating new packet
+   Ptr<Packet> newPacket = Create<Packet> (reinterpret_cast<const uint8_t*> (ucData.c_str()),ucData.length());
+  
+  
+  newPacket -> AddHeader(seqTsHeader);
+  
+  udpHeader.ForcePayloadSize(newPacket -> GetSize ());
+  newPacket -> AddHeader(udpHeader);
+  
+  ipv4Header.SetPayloadSize(newPacket -> GetSize ());
+  newPacket -> AddHeader(ipv4Header);
+  
+  AddHeader (newPacket, 2048); //idli
+  
+  packet = newPacket;
+  std::cout << std::endl <<"Un-compressed Packet to be sent : " <<std::endl<< *packet<<std::endl;
 
 } else {
 
@@ -712,118 +694,82 @@ std::cout <<std::endl<<std::endl<<"here:::::::"<<protocolNumber<<std::endl<<std:
 
 //idli
 std::cout<<"in Send --> ";
+
+//declaring ppp header
 PppHeader ppp;
 packet->PeekHeader(ppp);
-//ppp.Print(std::cout);
-std::cout << ppp.GetProtocol() << std::endl;
+ 
+if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has to be compressed and protocol is 0X0021
 
-if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has to be compressed
+  //declaring packet and header size
+  //int packetSize;
+  //int pppHeaderSize;
+  //int ipv4HeaderSize;
+  //int udpHeaderSize;
+  //int seqTsHeaderSize;
+  //int ucDataLength;
+  
+  //declaring header variables
+  Ipv4Header ipv4Header;
+  UdpHeader udpHeader;
+  SeqTsHeader seqTsHeader;
+  
   std::cout << std::endl;
   std::cout << "Compression needed"<<std::endl;
-  std::cout << "Packet before removing header:" << *packet<<std::endl;
+  std::cout << "Original Packet : "<<std::endl << *packet<<std::endl;
+  //packetSize = packet -> GetSize ();
+  
   packet->RemoveHeader(ppp);
-  std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
-  //AddHeader (packet, 2049); //idli
-  //std::cout << std::endl <<"Packet after adding new header:" << *packet<<std::endl;
+  //std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
+  //pppHeaderSize = packetSize - packet -> GetSize ();
   
-  ////
+  packet->RemoveHeader(ipv4Header);
+  //ipv4HeaderSize = packetSize - pppHeaderSize - packet -> GetSize ();
   
+  packet->RemoveHeader(udpHeader);
+  //udpHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - packet -> GetSize ();
   
-  //getting data from packet //idliidli ==>
+  packet->RemoveHeader(seqTsHeader);
+  //seqTsHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - udpHeaderSize - packet -> GetSize ();
+  
+  //getting data from packet //
   uint8_t *buffer = new uint8_t[packet->GetSize ()];
-  uint32_t size = packet->CopyData(buffer, packet->GetSize ());
-  //std::cout<<"Received Size:::::::::::::::::::::"<<size<<std::endl;
-  std::string str = std::string(buffer, buffer+packet->GetSize());
-  //std::cout<<"Received full data :::::::::::::::::::::"<<str<<std::endl;
-  std::string str2 = str.substr (size-1100,size); 
-  //std::cout<<"Received data =>"<<str2<<std::endl;
-  // idli zlib
-  str2 = "0x0021"+str2;
-  int n = str2.length();  
-      
-    // declaring character array 
-    char uncompressed_char_array[n+1];  
-    char compressed_char_array[n+1];  
-      
-    // copying the contents of the  
-    // string to char array 
-    strcpy(uncompressed_char_array, str2.c_str()); 
-    
-  std::string compressedData;
+  uint32_t dataSize = packet->CopyData(buffer, packet->GetSize ());
+  std::string data = std::string(buffer, buffer+packet->GetSize());
+  std::cout<<"Router1 original packet Data Size : "<<dataSize<<std::endl;
+  std::cout<<"Received data : "<<data<<std::endl;
+  //
+  //std::string dataProto = std::hex << 33; 
+  std::string ucData  = data;// dataProto + data;
+  //int ucDataLength = ucData.length();  
   
-      std::printf("\n----------\n\n");
-
-    // STEP 1.
-    // deflate a into b. (that is, compress a into b)
-    
-    // zlib struct
-    z_stream defstream;
-    defstream.zalloc = Z_NULL;
-    defstream.zfree = Z_NULL;
-    defstream.opaque = Z_NULL;
-    // setup "a" as the input and "b" as the compressed output
-    defstream.avail_in = (uInt)strlen(uncompressed_char_array)+1; // size of input, string + terminator
-    defstream.next_in = (Bytef *)uncompressed_char_array; // input char array
-    defstream.avail_out = (uInt)sizeof(compressed_char_array); // size of output
-    defstream.next_out = (Bytef *)compressed_char_array; // output char array
-    
-    // the actual compression work.
-    deflateInit(&defstream, Z_BEST_COMPRESSION);
-    deflate(&defstream, Z_FINISH);
-    deflateEnd(&defstream);
+  
+  //
+  // compress Data
+  //
+   
+  std::string cData  = "Hack Hack Happy Hack Hack Happy .....";
+  
+  //creating new packet
+  Ptr<Packet> newPacket = Create<Packet> (reinterpret_cast<const uint8_t*> (cData.c_str()),cData.length());
+  
+  
+  newPacket -> AddHeader(seqTsHeader);
+  
+  udpHeader.ForcePayloadSize(newPacket -> GetSize ());
+  newPacket -> AddHeader(udpHeader);
+  
+  ipv4Header.SetPayloadSize(newPacket -> GetSize ());
+  newPacket -> AddHeader(ipv4Header);
+   
      
-    // This is one way of getting the size of the output
-    std::printf("Compressed size is: %lu\n", strlen(compressed_char_array));
-    std::printf("Compressed string is: %s\n", compressed_char_array);
-    std::string str3 = compressed_char_array;
-    
-
-    std::printf("\n----------\n\n");
+  AddHeader (newPacket, 2049); //idli
   
-  //str2 = "Hack Hack Happy Hack Hack Happy .....";
-  //Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (str2.c_str()),str2.length()); 
-  Ptr<Packet> p = Create<Packet> (reinterpret_cast<const uint8_t*> (str3.c_str()),str3.length()); 
-
-  
-   // Remove IPV4 Header
-    Ipv4Header ipHeader;
-    packet-> RemoveHeader(ipHeader);
-    int ipSize = ipHeader.GetPayloadSize();// - packet-> GetSize();
-    std::cout << "ipSize ::::::: " << ipSize;
-      std::cout <<std::endl <<std::endl<< "Ipv4 :::" << ipHeader<<std::endl;
-    
-    // Remove UDP Header
-    UdpHeader udpHeader;
-    packet-> RemoveHeader(udpHeader);
-      std::cout << "udpHeader :::" << udpHeader<<std::endl;
-      
-      //Remove seq-ts Header
-      SeqTsHeader seqtsHeader;
-    packet-> RemoveHeader(seqtsHeader);
-      std::cout << "seqtsHeader :::" << seqtsHeader<<std::endl;
-    
-    
-    //adding headers to new packet - idli
-    p-> AddHeader(seqtsHeader);
-    p-> AddHeader(udpHeader);
-    p-> AddHeader(ipHeader);
-    
-    
-  AddHeader (p, 2049);
-
-  packet = p;
-  std::cout <<std::endl;
-  std::cout << "NEW COMPRESSED CREATED PACKET :::" << *packet<<std::endl;
-  
-  ////
-  //// idli todo////
+  packet = newPacket;
+  std::cout << std::endl <<"Compressed Packet to be sent : " <<std::endl<< *packet<<std::endl;
   
   
-  std::cout << std::endl;
-
-} else {
-  //AddHeader (packet, protocolNumber);
-  //std::cout << std::endl <<"Packet after adding normal header:" << *packet<<std::endl;
+  
 }
 //idli
 

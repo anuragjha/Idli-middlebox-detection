@@ -177,17 +177,21 @@ UdpServer::HandleRead (Ptr<Socket> socket)
       if (packet->GetSize () > 0)
         {
 
-// idli
-uint8_t *buffer = new uint8_t[packet->GetSize ()];
-          packet->CopyData(buffer, packet->GetSize ());
-          std::string s = std::string(buffer, buffer+packet->GetSize());
-          std::cout<<"Data at udp server - Received1:"<<s.substr(12, s.length()-1)<<std::endl;
-          //12 - is the length of seq-tsheader header 
-//
-
+        // idli
+        uint8_t *buffer = new uint8_t[packet->GetSize ()];
+        packet->CopyData(buffer, packet->GetSize ());
+        std::cout<<"Packet data at client size :"<<std::endl<<*packet<<std::endl;
+        //idli
 
           SeqTsHeader seqTs;
           packet->RemoveHeader (seqTs);
+
+
+        //idli
+        std::string data = std::string(buffer, buffer+packet->GetSize());
+        std::cout<<"Received data at client size :"<<std::endl<<data<<std::endl;
+        //idli
+
           uint32_t currentSequenceNumber = seqTs.GetSeq ();
           if (InetSocketAddress::IsMatchingType (from))
             {

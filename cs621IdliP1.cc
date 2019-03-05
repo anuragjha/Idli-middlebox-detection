@@ -93,9 +93,9 @@ Packet::EnablePrinting();
   	serverApps.Start (Seconds (1.0));
   	serverApps.Stop (Seconds (100.0));
 
-	uint32_t MaxPacketSize = 1100+7;//5+7;
+	uint32_t MaxPacketSize = 1100;//5+7;
    	Time interPacketInterval = Seconds (0.001);
-   	uint32_t maxPacketCount = 3;
+   	uint32_t maxPacketCount = 1;
  	UdpClientHelper client (ifc23.GetAddress(1), port);
  	client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
     client.SetAttribute ("Interval", TimeValue (interPacketInterval));
@@ -103,6 +103,12 @@ Packet::EnablePrinting();
   	ApplicationContainer clientApps = client.Install (nodes.Get (0));
   	clientApps.Start (Seconds (2.0));
   	clientApps.Stop (Seconds (100.0));
+
+	//ascii and pcap generate
+	AsciiTraceHelper ascii;
+	pointToPoint.EnableAsciiAll (ascii.CreateFileStream ("cs621IdliP1.tr"));
+	pointToPoint.EnablePcapAll ("cs621IdliP1");
+
 
     //start and then destroy simulator
 	Simulator::Run();
