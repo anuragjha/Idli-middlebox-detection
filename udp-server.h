@@ -48,6 +48,30 @@ namespace ns3 {
 class UdpServer : public Application
 {
 public:
+
+   //idli
+
+   int counter = 1;
+
+   Time startTime;
+   Time endTime;
+
+   Time lowEStartTime;
+   Time lowEEndTime;
+   Time deltalowETime;
+
+   Time highEStartTime;
+   Time highEEndTime;
+   Time deltaHighETime;
+
+   Time deltaTime;
+
+   bool isHighEntropy;
+
+   void logTime(void);
+
+   //idli
+
   /**
    * \brief Get the type ID.
    * \return the object TypeId

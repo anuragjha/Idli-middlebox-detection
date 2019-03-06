@@ -32,9 +32,13 @@
 #include "seq-ts-header.h"
 #include <cstdlib>
 #include <cstdio>
-#include<iostream> 
+#include <iostream> 
 #include <sstream>  // for string streams 
-#include <string> 
+#include <string>
+#include <unistd.h> 
+#include <fstream>
+#include <cstdlib>
+#include <random>
 
 namespace ns3 {
 
@@ -102,6 +106,11 @@ UdpClient::SetRemote (Address addr)
 {
   NS_LOG_FUNCTION (this << addr);
   m_peerAddress = addr;
+}
+
+void
+UdpClient::setIsHighEntropy (bool he){
+        isHighEntropy = he;
 }
 
 void
@@ -175,39 +184,106 @@ UdpClient::Send (void)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_sendEvent.IsExpired ());
-  SeqTsHeader seqTs;
+
+// idli 
+
+std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXXXXXXX"<<std::endl;
+
+  
+  std::string payload;
+
+        // if (counter == (m_count/2)+1) { //checking to reach 6000 on m_sent
+         //       std::cout <<std::endl<<std::endl<< "!!! SLEEPING NOW !!!!"<<std::endl<<std::endl;
+         //     sleep(4); 
+        
+              isHighEntropy = false; ///idliidliidli
+            
+       // }
+        counter = counter +1; //increasing counter
+        
+  
+        if(isHighEntropy == false) { //for less than 6000
+                //creating all 0s payload
+                for(int n = 0; n<1100; n++) { //1100 range
+                        payload += std::to_string(0);      
+                }
+              
+                //SendHelper(payload);
+        } 
+         //ugly hack
+        if (counter > 6000 ) {
+             isHighEntropy = true;   
+        }
+
+
+        if (isHighEntropy == true) { //for greater than 600
+                payload = readRandomPayload();
+               // payload = "Payload created!!";
+                std::cout<<"Payload created!!";
+                //creating all random payload
+                //for(int n = 0; n<10; n++) { //1100 range
+                //        payload += std::to_string(rand()%2);      
+               // }
+               
+                //SendHelper(payload);
+        }
+
+        SendHelper(payload);
+        
+   //}
+ 
+} //send
+
+std::string
+UdpClient::readRandomPayload() {
+
+  std::cout<<"In readRandomPayload()";
+  //int length = 1100;
+  //har *str = new char;  
+  char *buffer = NULL;
+  unsigned int length = 1100;
+  std::ifstream is ("randomPayload.txt", std::ifstream::binary);
+  if (is) {
+    // get length of file:
+    is.seekg (payloadStartPosition, is.beg);
+    payloadStartPosition += 1100;
+   // int size = is.tellg();
+   // is.seekg (0, is.beg);
+
+    // allocate memory:
+    buffer = new char [length];
+
+    // read data as a block:
+    is.read (buffer,length);
+
+    is.close();
+    // print content:
+        std::cout<<"Buffer content:";
+    std::cout.write (buffer,length);
+  }
+  //memset(str, '\0', length + 1);
+
+  std::string s(buffer, length);
+  delete (buffer);
+  
+  return s;  
+}
+
+
+void
+UdpClient::SendHelper (std::string payload) {
+
+
+SeqTsHeader seqTs;
   seqTs.SetSeq (m_sent);
 
  // Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
 
-// idli 
-//static bool isHighEntropy;
+Ptr<Packet> p;
 
-
-std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<<counter<<"==============="<<std::endl;
-counter = counter +1;
-
-
-  isHighEntropy = true; //read from config
-  Ptr<Packet> p;
-  std::string payload;
-  
-  if (isHighEntropy == true) {
-    //creating random byte payload    
-    for(int n = 0; n<1100; n++) { //1100 range
-        payload += std::to_string(rand()%2);      
-    }
-  
-  } else {
-      //creating all 0s payload     
-    for(int n = 0; n<1100; n++) { //1100 range
-        payload += std::to_string(0);      
-    }
-  
-  }
-  //std::cout<<"payload:"<<payload<<std::endl;
-   p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),1100);   
-   std::cout << "Packet initial - at client side : " << *p<< std::endl;
+          //std::cout<<"payload:"<<payload<<std::endl;
+   p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),payload.length());   
+   std::cout << "Packet initial - at client side : " << std::endl<< *p<<"end" <<std::endl;
 
 
 // idli
@@ -244,6 +320,19 @@ counter = counter +1;
     {
       m_sendEvent = Simulator::Schedule (m_interval, &UdpClient::Send, this);
     }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+} //sendhelper
 
 } // Namespace ns3

@@ -47,11 +47,20 @@ public:
 
 //idli
 
-int counter = 0;
+uint32_t counter = 1;
 
 //idli
 
+   std::string readRandomPayload(void);
 
+    int    payloadStartPosition = 0;
+
+  void setIsHighEntropy (bool he);
+  //idli
+   bool isHighEntropy; // for entropy
+   //idli
+
+//idli
 
   /**
    * \brief Get the type ID.
@@ -89,6 +98,8 @@ private:
    */
   void Send (void);
 
+   void SendHelper (std::string payload);
+
   uint32_t m_count; //!< Maximum number of packets the application will send
   Time m_interval; //!< Packet inter-send time
   uint32_t m_size; //!< Size of the sent packet (including the SeqTsHeader)
@@ -99,9 +110,7 @@ private:
   uint16_t m_peerPort; //!< Remote peer port
   EventId m_sendEvent; //!< Event to send the next packet
   
-   //idli
-  bool isHighEntropy; // for entropy
-   //idli
+ 
   
 
 };
