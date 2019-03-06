@@ -169,22 +169,17 @@ UdpServer::StopApplication ()
 void
 UdpServer::logTime() {
         //idli
-        
+        int counter = 0;
         std::cout << std::endl<<std::endl<<std::endl;
         
-        if (m_received == 60000) { //ugly hack //idli
-               isHighEntropy = true; 
-        }else if (m_received == 120000) { //ugly hack //idli
-               isHighEntropy = false; 
-        }else if (m_received == 180000) {
-               isHighEntropy = true;
-        }
-        
-        if(isHighEntropy == false) {
+        //if(isHighEntropy == false) {
+        if(m_received <= 6000) {
               lowEStartTime = startTime;
               lowEEndTime = endTime;
               deltalowETime = endTime-startTime;
-        } else if (isHighEntropy == true) {
+                // sleep
+        //} else if (isHighEntropy == true) {
+          } else if (m_received > 6000) {
               highEStartTime = startTime;
               highEEndTime = endTime;
               deltaHighETime = endTime-startTime;
@@ -192,6 +187,7 @@ UdpServer::logTime() {
         
         if(deltaHighETime > 0 && deltalowETime > 0) {
               deltaTime = deltaHighETime - deltalowETime;
+                counter += 1;
         }
 
         std::cout << "startTime : " << startTime;
@@ -203,7 +199,7 @@ UdpServer::logTime() {
         std::ofstream ofs;
         ofs.open ("Results.txt", std::ofstream::out | std::ofstream::app);
 
-        ofs << "Simulation time diff: "<<deltaTime << " = "<< deltaHighETime << " - "<< deltalowETime <<std::endl;
+        ofs << "Simulation "<< counter << " time diff:: "<<deltaTime << " = "<< deltaHighETime << " - "<< deltalowETime <<std::endl;
 
         ofs.close();
 

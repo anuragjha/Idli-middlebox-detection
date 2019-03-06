@@ -38,19 +38,19 @@ main(int argc, char const *argv[])
 		if(k == 2) {
 			compression = true;	
 		}
-		for(int j = 1; j<=2 ; j++) { //low entropy high entropy // hack in udp-server
-			
-			for(int i = 1; i<=10; i++)	{ //datarate variation
+		
+		for(int i = 1; i<=10; i++)	{ //datarate variation
+			//for(int j = 1; j<=2 ; j++) { //low entropy high entropy // hack in udp-server
 				//creating high entropy payload file
-				//if(j==2) {
-				//	 UdpClient::isHighEntropy = true;
+			//	if(j==2) {
+					// UdpClient::isHighEntropy = true;
 					//generateRandomPayloadFile();
 		
-				//} else {
-				//	 UdpClient::isHighEntropy = false;
-				//}
+			//	} else {
+			//		 UdpClient::isHighEntropy = false;
+			//	}
 				makeSimulation("EXP_"+std::to_string(i)+"_", std::string (std::to_string(i)+"Mbps"), compression, i);
-			}
+			//}
 			//sleep(1); //
 		}
 	}
@@ -161,7 +161,7 @@ Packet::EnablePrinting();
 
 	uint32_t MaxPacketSize = 1150;//5+7; //config file
    	Time interPacketInterval = Seconds (0.001); //config file
-   	uint32_t maxPacketCount = 6000; //config file
+   	uint32_t maxPacketCount = 12000; //config file
  	UdpClientHelper client (ifc23.GetAddress(1), port);
 
  	client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
@@ -185,7 +185,7 @@ Packet::EnablePrinting();
 	//ascii and pcap generate
 	AsciiTraceHelper ascii;
 	pointToPoint.EnableAsciiAll (ascii.CreateFileStream ("p1_"+pcapPrefix+".tr"));
-	pointToPoint.EnablePcapAll ("p1"+pcapPrefix+"_round_"+std::to_string(round)+"-");
+	pointToPoint.EnablePcapAll ("p1"+pcapPrefix+"_dr_"+std::to_string(round)+"-");
 
 
     	//start and then destroy simulator
