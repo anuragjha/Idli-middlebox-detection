@@ -183,7 +183,7 @@ UdpServer::logTime() {
               highEStartTime = startTime;
               highEEndTime = endTime;
               deltaHighETime = endTime-startTime;
-        }
+          }
         
         if(deltaHighETime > 0 && deltalowETime > 0) {
               deltaTime = deltaHighETime - deltalowETime;
