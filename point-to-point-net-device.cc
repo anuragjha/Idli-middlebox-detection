@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <iostream>
 #include "ns3/log.h"
 #include "ns3/queue.h"
 #include "ns3/simulator.h"
@@ -430,8 +431,6 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
   // idli
   std::cout<<"in receieve --> ";
 
-
-
   //declaring ppp header
   PppHeader ppp;
   packet->PeekHeader(ppp);
@@ -471,18 +470,22 @@ if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet
   //getting data from packet //idliidli ==>
   uint8_t *buffer = new uint8_t[packet->GetSize ()];
   uint32_t dataSize = packet->CopyData(buffer, packet->GetSize ());
-  std::string data = std::string(buffer, buffer+packet->GetSize());
+  std::string cdata = std::string(buffer, buffer+packet->GetSize());
   std::cout<<"Router2 original packet Data Size : "<<dataSize<<std::endl;
-  std::cout<<"Received data : "<<data<<std::endl;
+  //std::cout<<"Received data : "<<cdata<<std::endl;
   
   ////
   // uncompressing data 
   ////
+  std::string ucData = cdata;
+std::string protocolData = ucData.substr(0, 6);
+  std::string originalData = ucData.substr(protocolData.length(),ucData.length());
   
-  std::string ucData = data + data  + data + data + data;
+std::cout<<"protocolData : "<<protocolData<<std::endl;
+std::cout<<"originalData : "<<originalData.length()<<std::endl;
 
    //creating new packet
-   Ptr<Packet> newPacket = Create<Packet> (reinterpret_cast<const uint8_t*> (ucData.c_str()),ucData.length());
+   Ptr<Packet> newPacket = Create<Packet> (reinterpret_cast<const uint8_t*> (originalData.c_str()),originalData.length());
   
   
   newPacket -> AddHeader(seqTsHeader);
@@ -731,27 +734,32 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
   
   packet->RemoveHeader(seqTsHeader);
   //seqTsHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - udpHeaderSize - packet -> GetSize ();
-  
+
   //getting data from packet //
-  uint8_t *buffer = new uint8_t[packet->GetSize ()];
-  uint32_t dataSize = packet->CopyData(buffer, packet->GetSize ());
+  uint8_t *buffer = new uint8_t[packet->GetSize () ];
+  uint32_t datapoSize = packet->CopyData(buffer, packet->GetSize ());
   std::string data = std::string(buffer, buffer+packet->GetSize());
-  std::cout<<"Router1 original packet Data Size : "<<dataSize<<std::endl;
+  std::cout<<"Router1 original packet Data Size : "<<datapoSize<<std::endl;
   std::cout<<"Received data : "<<data<<std::endl;
-  //
-  //std::string dataProto = std::hex << 33; 
-  std::string ucData  = data;// dataProto + data;
-  //int ucDataLength = ucData.length();  
+
+
+   std::string protocol = "0x0021";
+   std::string ucData  = protocol+data;// data
   
   
-  //
+  ////
   // compress Data
-  //
-   
-  std::string cData  = "Hack Hack Happy Hack Hack Happy .....";
+  ////
+
+
+  std::string cData  = ucData;//"Hack Hack Happy Hack Hack Happy .....";
   
   //creating new packet
-  Ptr<Packet> newPacket = Create<Packet> (reinterpret_cast<const uint8_t*> (cData.c_str()),cData.length());
+  Ptr<Packet> newPacket = Create<Packet> ((reinterpret_cast<const uint8_t*> (cData.c_str())),cData.length());
+
+uint8_t *newBuffer = new uint8_t[newPacket->GetSize ()];
+std::string newData = std::string(newBuffer, newBuffer+newPacket->GetSize());
+std::cout <<std::endl<<std::endl<<"newData :"<< newData<<std::endl;
   
   
   newPacket -> AddHeader(seqTsHeader);
