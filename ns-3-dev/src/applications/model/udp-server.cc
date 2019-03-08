@@ -172,14 +172,14 @@ UdpServer::logTime() {
         int counter = 0;
         std::cout << std::endl<<std::endl<<std::endl;
         
-        //if(isHighEntropy == false) {
-        if(m_received <= 6000) {
+        if(isHighEntropy == false) {
+        //if(m_received <= 6000) {
               lowEStartTime = startTime;
               lowEEndTime = endTime;
               deltalowETime = endTime-startTime;
                 // sleep
-        //} else if (isHighEntropy == true) {
-          } else if (m_received > 6000) {
+        } else if (isHighEntropy == true) {
+         // } else if (m_received > 6000) {
               highEStartTime = startTime;
               highEEndTime = endTime;
               deltaHighETime = endTime-startTime;
@@ -210,10 +210,13 @@ UdpServer::HandleRead (Ptr<Socket> socket)
 {
         //idli
         std::cout <<"======================="<<counter<<"========================"<<std::endl;
-        if(m_received == 1) {     
+        std::cout<< "m_received  : "<<m_received<<std::endl;
+        if(m_received == 0) {     
                 startTime = Simulator::Now();
+                std::cout<< "taking start time "<<std::endl;
         } else {
                 endTime = Simulator::Now();
+                std::cout<< "taking end time "<<std::endl;
         }
 
   counter += 1;
