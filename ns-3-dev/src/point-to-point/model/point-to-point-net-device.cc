@@ -440,7 +440,7 @@ if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet
   //getting data from packet //idliidli ==>
   uint8_t *buffer = new uint8_t[packet->GetSize ()];
   uint32_t dataSize = packet->CopyData(buffer, packet->GetSize ());
-  std::string cdata = std::string(buffer, buffer+packet->GetSize());
+  std::string cData = std::string(buffer, buffer+packet->GetSize());
   std::cout<<"Router2 original packet Data Size : "<<dataSize<<std::endl;
   //std::cout<<"Received data : "<<cdata<<std::endl;
   
@@ -448,7 +448,10 @@ if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet
   // uncompressing data 
   
   ////
-  std::string ucData = decompressData(cdata);
+  //std::string ucData = decompressData(cdata);
+  std::string ucData = zlib_decompress_string(cData);
+
+
 std::cout<<"ucData : "<<ucData<<std::endl;
 
 
@@ -726,8 +729,9 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
   ////
   // compress Data
 
-  std::string cData  =  compressData(ucData);//ucData;
- // std::string cData = ucData.zlib_compress_string(&ucData, Z_BEST_COMPRESSION);
+  //std::string cData  =  compressData(ucData);//ucData;
+  std::string cData = zlib_compress_string(ucData);
+
   
   //creating new packet
   Ptr<Packet> newPacket = Create<Packet> ((reinterpret_cast<const uint8_t*> (cData.c_str())),cData.length());
@@ -965,6 +969,15 @@ decompressData(std::string cData)
     char b[1106];
     strcpy(b, cData.c_str());//"Hello Hello Hello Hello Hello Hello!"; 
     
+   // zlib struct
+    z_stream defstream;
+    defstream.zalloc = Z_NULL;
+    defstream.zfree = Z_NULL;
+    defstream.opaque = Z_NULL;
+    defstream.avail_out = (uInt)sizeof(b); // size of output
+    defstream.next_out = (Bytef *)b; // output char array
+
+
     // placeholder for the compressed (deflated) version of "a" 
     //char b[1100];
 
@@ -980,7 +993,7 @@ decompressData(std::string cData)
     infstream.zfree = Z_NULL;
     infstream.opaque = Z_NULL;
     // setup "b" as the input and "c" as the compressed output
-    infstream.avail_in = (uInt)((char*)(Bytef *)b - cData.c_str()); // size of input
+    infstream.avail_in = (uInt)((char*)defstream.next_out - b); // size of input
     //infstream.avail_in = 1106;//(uInt)strlen(b); //idli
     infstream.next_in = (Bytef *)b; // input char array
     infstream.avail_out = (uInt)sizeof(c); // size of output
