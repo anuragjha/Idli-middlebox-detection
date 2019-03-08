@@ -964,26 +964,12 @@ decompressData(std::string cData)
     //int n = cData.length();  
     char b[1106];
     strcpy(b, cData.c_str());//"Hello Hello Hello Hello Hello Hello!"; 
-        //std::cout << length of 
+    
     // placeholder for the compressed (deflated) version of "a" 
     //char b[1100];
 
     // placeholder for the UNcompressed (inflated) version of "b"
-    char c[1106];
-
-
-
-     // zlib struct
-   // z_stream defstream;
-   // defstream.zalloc = Z_NULL;
-    //defstream.zfree = Z_NULL;
-    //defstream.opaque = Z_NULL;
-    // setup "a" as the input and "b" as the compressed output
-    //defstream.avail_in = (uInt)strlen(a)+1; // size of input, string + terminator
-    //defstream.next_in = (Bytef *)a; // input char array
-    //defstream.avail_out = (uInt)sizeof(b); // size of output
-    //defstream.next_out = (Bytef *)b; // output char array
-     
+    char c[1106];     
 
 
     // STEP 2.
@@ -994,8 +980,8 @@ decompressData(std::string cData)
     infstream.zfree = Z_NULL;
     infstream.opaque = Z_NULL;
     // setup "b" as the input and "c" as the compressed output
-    //infstream.avail_in = (uInt)((char*)(Bytef *)b - b); // size of input
-    infstream.avail_in = (uInt)strlen(b+1); //idli
+    infstream.avail_in = (uInt)((char*)(Bytef *)b - cData.c_str()); // size of input
+    //infstream.avail_in = 1106;//(uInt)strlen(b); //idli
     infstream.next_in = (Bytef *)b; // input char array
     infstream.avail_out = (uInt)sizeof(c); // size of output
     infstream.next_out = (Bytef *)c; // output char array
