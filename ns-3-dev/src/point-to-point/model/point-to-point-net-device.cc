@@ -31,12 +31,28 @@
 #include "ns3/ipv4-header.h"
 #include "ns3/udp-header.h"
 #include "ns3/seq-ts-header.h"
+#include "ns3/string.h"
+#include <stdio.h>
+//#include <fstream>
+#include <assert.h>
+#include <bits/stdc++.h> 
+extern "C"{ //we are using c here
+
+#include <zlib.h>
+
+}
 
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("PointToPointNetDevice");
 
 NS_OBJECT_ENSURE_REGISTERED (PointToPointNetDevice);
+
+std::string
+compressData(std::string);
+
+std::string
+decompressData(std::string);
 
 TypeId 
 PointToPointNetDevice::GetTypeId (void)
@@ -430,8 +446,13 @@ if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet
   
   ////
   // uncompressing data 
+  
   ////
-  std::string ucData = cdata;
+  std::string ucData = decompressData(cdata);
+std::cout<<"ucData : "<<ucData<<std::endl;
+
+
+
 std::string protocolData = ucData.substr(0, 6);
   std::string originalData = ucData.substr(protocolData.length(),ucData.length());
   
@@ -699,22 +720,21 @@ if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has 
 
 
    std::string protocol = "0x0021";
-   std::string ucData  = protocol+data;// data
-  
+  std::string ucData  = protocol+data;// data
+  //std::string ucData  = data;
   
   ////
   // compress Data
-  ////
 
-
-  std::string cData  = ucData;//"Hack Hack Happy Hack Hack Happy .....";
+  std::string cData  =  compressData(ucData);//ucData;
+ // std::string cData = ucData.zlib_compress_string(&ucData, Z_BEST_COMPRESSION);
   
   //creating new packet
   Ptr<Packet> newPacket = Create<Packet> ((reinterpret_cast<const uint8_t*> (cData.c_str())),cData.length());
 
-uint8_t *newBuffer = new uint8_t[newPacket->GetSize ()];
-std::string newData = std::string(newBuffer, newBuffer+newPacket->GetSize());
-std::cout <<std::endl<<std::endl<<"newData :"<< newData<<std::endl;
+//uint8_t *newBuffer = new uint8_t[newPacket->GetSize ()];
+//std::string newData = std::string(newBuffer, newBuffer+newPacket->GetSize());
+std::cout <<std::endl<<std::endl<<"cData :"<< cData<<std::endl;
   
   
   newPacket -> AddHeader(seqTsHeader);
@@ -880,4 +900,118 @@ PointToPointNetDevice::EtherToPpp (uint16_t proto)
     }
   return 0;
 }
+
+
+std::string
+compressData(std::string ucData)
+{   
+    // original string len = 36
+    int n = ucData.length();  
+        std::cout << "length of data to be compressed" << n <<std::endl;
+    char a[n + 1];
+    strcpy(a, ucData.c_str());//"Hello Hello Hello Hello Hello Hello!"; 
+
+    // placeholder for the compressed (deflated) version of "a" 
+    char b[1106];
+
+    // placeholder for the UNcompressed (inflated) version of "b"
+    //char c[1100];
+     
+
+    printf("Uncompressed size is: %lu\n", strlen(a));
+    printf("Uncompressed string is: %s\n", a);
+
+
+    printf("\n----------\n\n");
+
+    // STEP 1.
+    // deflate a into b. (that is, compress a into b)
+    
+    // zlib struct
+    z_stream defstream;
+    defstream.zalloc = Z_NULL;
+    defstream.zfree = Z_NULL;
+    defstream.opaque = Z_NULL;
+    // setup "a" as the input and "b" as the compressed output
+    defstream.avail_in = (uInt)strlen(a)+1; // size of input, string + terminator
+    defstream.next_in = (Bytef *)a; // input char array
+    defstream.avail_out = (uInt)sizeof(b); // size of output
+    defstream.next_out = (Bytef *)b; // output char array
+    
+    // the actual compression work.
+    deflateInit(&defstream, Z_BEST_COMPRESSION);
+    deflate(&defstream, Z_FINISH);
+    deflateEnd(&defstream);
+     
+    // This is one way of getting the size of the output
+    printf("Compressed size is: %lu\n", strlen(b));
+    printf("Compressed string is: %s\n", b);
+    
+
+    printf("\n----------\n\n");
+        return std::string(b);
+}
+
+
+std::string
+decompressData(std::string cData)
+{ 
+
+    //int n = ucData.length();  
+   // char a[n + 1];
+   // strcpy(a, ucData.c_str());//"Hello Hello Hello Hello Hello Hello!"; 
+
+    //int n = cData.length();  
+    char b[1106];
+    strcpy(b, cData.c_str());//"Hello Hello Hello Hello Hello Hello!"; 
+        //std::cout << length of 
+    // placeholder for the compressed (deflated) version of "a" 
+    //char b[1100];
+
+    // placeholder for the UNcompressed (inflated) version of "b"
+    char c[1106];
+
+
+
+     // zlib struct
+   // z_stream defstream;
+   // defstream.zalloc = Z_NULL;
+    //defstream.zfree = Z_NULL;
+    //defstream.opaque = Z_NULL;
+    // setup "a" as the input and "b" as the compressed output
+    //defstream.avail_in = (uInt)strlen(a)+1; // size of input, string + terminator
+    //defstream.next_in = (Bytef *)a; // input char array
+    //defstream.avail_out = (uInt)sizeof(b); // size of output
+    //defstream.next_out = (Bytef *)b; // output char array
+     
+
+
+    // STEP 2.
+    // inflate b-cdata into c
+    // zlib struct
+    z_stream infstream;
+    infstream.zalloc = Z_NULL;
+    infstream.zfree = Z_NULL;
+    infstream.opaque = Z_NULL;
+    // setup "b" as the input and "c" as the compressed output
+    //infstream.avail_in = (uInt)((char*)(Bytef *)b - b); // size of input
+    infstream.avail_in = (uInt)strlen(b+1); //idli
+    infstream.next_in = (Bytef *)b; // input char array
+    infstream.avail_out = (uInt)sizeof(c); // size of output
+    infstream.next_out = (Bytef *)c; // output char array
+     
+    // the actual DE-compression work.
+    inflateInit(&infstream);
+    inflate(&infstream, Z_NO_FLUSH);
+    inflateEnd(&infstream);
+     
+    printf("Uncompressed size is: %lu\n", strlen(c));
+    printf("Uncompressed string is: %s\n", c);
+    
+        printf("\n----------\n\n");
+        return std::string(c);  
+
+
+}
+
 } // namespace ns3
