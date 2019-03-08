@@ -24,9 +24,17 @@ makeSimulation(std::string, std::string, bool, int);
 
 
 int
-main(int argc, char const *argv[])
+main(int argc, char *argv[])
 {
 	Time::SetResolution(Time::NS);
+    
+    CommandLine cmd;
+    std::string cfPath; 
+    cmd.AddValue("cfPath", "config file path", cfPath);
+    cmd.Parse (argc, argv);
+    std::cout<<"config file:"<<cfPath<<std::endl;
+
+
 
 	std::cout << "generating random data file..."<< "endl";
 	generateRandomPayloadFile();
@@ -58,10 +66,6 @@ main(int argc, char const *argv[])
 	return 0;
 }
 
-
-
-//int
-//main(int argc, char const *argv[])
 void
 makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compression, int round)
 {
@@ -76,9 +80,9 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 
 	std::cout<<"cs621 Idli P1\n\n";
     //Time::SetResolution(Time::NS);
-    LogComponentEnable ("PointToPointNetDeviceCustom", LOG_LEVEL_INFO);
-    LogComponentEnable ("UdpClientCustom", LOG_LEVEL_INFO);
-    LogComponentEnable ("UdpServerCustom", LOG_LEVEL_INFO);
+    LogComponentEnable ("PointToPointNetDevice", LOG_LEVEL_INFO);
+    LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
+    LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
 //idli
 Packet::EnablePrinting();
 //Packet::EnableChecking();
