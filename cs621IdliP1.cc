@@ -74,7 +74,7 @@ main(int argc, char *argv[])
     cmd.AddValue("cfFileName", "config file name", cfFileName);
     cmd.Parse (argc, argv);
     if(cfFileName.empty()){
-    	std::cout<<"Config file not given: command is ./waf --run 'cs621P1Idli --cfFileName=config.txt'" << std::endl;
+    	std::cout<<"Config file not given: command is ./waf --run 'cs621IdliP1 --cfFileName=config.txt'" << std::endl;
     }else{
     	std::cout<<"Reading config file" << std::endl;
     	std::tuple<int, int, int, std::string> configParameters = readConfigParamaters(cfFileName);
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
     		
     		// Initiate simulation with 30 second interval between two packet trains
     		
-			for(int i = 1; i<=10; i++)	{
+			for(int i = minDataRate; i<=maxDataRate; i++)	{
 				makeSimulation("EXP_"+std::to_string(i)+"_", std::string (std::to_string(i)+"Mbps"), compressionFlag, i);
 			}
     	}		
@@ -195,8 +195,6 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 	client.SetAttribute ("Interval", TimeValue (interPacketInterval));
   	client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   	ApplicationContainer clientApps = client.Install (nodes.Get (0));
-	
-
 
   	clientApps.Start (Seconds (5.0));
   	clientApps.Stop (Seconds (100.0));
@@ -211,5 +209,3 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 	Simulator::Run();
 	Simulator::Destroy ();
 }
-
-
