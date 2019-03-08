@@ -58,7 +58,21 @@ main(int argc, char *argv[])
     	std::cout<<"Reading config file" << std::endl;
     	std::tuple<int, int, int, std::string> configParameters = readConfigParamaters(cfFileName);
     	if(std::get<0>(configParameters)!= -1){
-    		std::cout << std::get<0>(configParameters) << std::get<1>(configParameters) << std::get<2>(configParameters) << std::get<3>(configParameters) << std::endl;
+    		bool compressionFlag;
+    		if(std::get<0>(configParameters)==1){
+    			compressionFlag = true; 
+    		}else{
+    			compressionFlag = false;
+    		}
+
+    		int minDataRate = std::get<1>(configParameters);
+    		int maxDataRate = std::get<2>(configParameters); 
+    		std::string protocol = std::get<3>(configParameters);
+    		std::cout<<"Config Parameters" << std::endl;
+    		std::cout<<"Compression:" << compressionFlag << std::endl;
+    		std::cout<<"minDataRate:" << minDataRate << std::endl;
+    		std::cout<<"maxDataRate:" << maxDataRate << std::endl;
+    		std::cout<<"protocol:" << protocol << std::endl;
     	}		
     }
 
