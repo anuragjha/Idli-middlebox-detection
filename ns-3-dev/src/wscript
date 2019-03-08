@@ -79,7 +79,7 @@ def configure(conf):
        # check for libdash #idli
     conf.env['ENABLE_DASH'] = False
     lib_to_check = 'libdash.so'
-    libdash_default_dir = "../../AMuSt-libdash/libdash/" # according to tutorial
+    libdash_default_dir = "../AMuSt-libdash/libdash/" # according to tutorial
     
     if Options.options.with_dash:
         conf.msg("Checking LIBDASH location", ("%s (given)" % Options.options.with_dash))
