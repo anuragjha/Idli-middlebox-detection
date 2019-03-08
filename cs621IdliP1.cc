@@ -43,6 +43,28 @@ readConfigParamaters(std::string cfFileName){
 	}
 }
 
+
+void
+generateRandomPayloadFile() {
+	std::uniform_int_distribution<int> d(0, 1);
+    std::stringstream s;
+
+	std::ofstream randomPayloadFile;
+     
+    std::cout<<"Generating random bits and outputing to file" << std::endl;
+  	randomPayloadFile.open ("randomPayload.txt");
+  
+    std::random_device rd2("/dev/random"); 
+	for(int pc = 0; pc < 6000*1100 + 5; pc++) {
+        s << d(rd2);
+	}
+	randomPayloadFile << s.str();
+	s.str("");
+  	randomPayloadFile.close();
+  	std::cout<<"Random bits generatio complete" << std::endl;
+}
+
+
 int
 main(int argc, char *argv[])
 {
@@ -73,12 +95,13 @@ main(int argc, char *argv[])
     		std::cout<<"minDataRate:" << minDataRate << std::endl;
     		std::cout<<"maxDataRate:" << maxDataRate << std::endl;
     		std::cout<<"protocol:" << protocol << std::endl;
+    		
+			generateRandomPayloadFile();
     	}		
     }
 
 
-// 	std::cout << "generating random data file..."<< "endl";
-// 	generateRandomPayloadFile();
+
 	
 //  //idli
 // 	bool compression;
@@ -242,38 +265,4 @@ main(int argc, char *argv[])
 // 	//return 0;
 // }
 
-// void
-// generateRandomPayloadFile() {
-// std::uniform_int_distribution<int> d(0, 1);
-        
-//         //std::stringstream strs;
-//         //strs.str( std::string() );
-// 	//strs.clear();
-// 	//int intStream[5];
-	
-// 	  std::stringstream s;
-  
-//   //std::string header = s.str();
 
-// 	std::ofstream randomPayloadFile;
-//   	randomPayloadFile.open ("randomPayload.txt");
-  
-//         std::random_device rd2("/dev/random"); 
-// 	for(int pc = 0; pc < 6000*1100 + 5; pc++) {
-//         	//for(int n = 0; n < 10; n++) {
-//                 	//std::cout << d(rd2) << ' ';
-//                 	//strs << d(rd2);
-//                 	//intStream[i] = d(rd2);
-//                 	s << d(rd2);
-// 			//str << d(rd2);
-//         	//}
-		  	
-// 	}
-// 	randomPayloadFile << s.str();
-// 	s.str("");
-// 	//strs.str( std::string() );
-// 	//strs.clear();
-
-//   	randomPayloadFile.close();
-
-// }
