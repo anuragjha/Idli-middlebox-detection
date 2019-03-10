@@ -196,7 +196,7 @@ std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXX
          //       std::cout <<std::endl<<std::endl<< "!!! SLEEPING NOW !!!!"<<std::endl<<std::endl;
          //     sleep(4); 
         
-              isHighEntropy = false; ///idliidliidli
+              //isHighEntropy = false; ///idliidliidli
             
        // }
         counter = counter +1; //increasing counter
@@ -211,21 +211,20 @@ std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXX
                 //SendHelper(payload);
         } 
          //ugly hack
-        if (counter > 6000 ) {
-             isHighEntropy = true;   
+        if (counter > (m_count/2)+1 ) {
+           if(isHighEntropy == false) {
+               sleep(2);
+                }
+             isHighEntropy = true; 
+                  
         }
 
 
         if (isHighEntropy == true) { //for greater than 600
                 payload = readRandomPayload();
-               // payload = "Payload created!!";
-                std::cout<<"Payload created!!";
-                //creating all random payload
-                //for(int n = 0; n<10; n++) { //1100 range
-                //        payload += std::to_string(rand()%2);      
-               // }
-               
-                //SendHelper(payload);
+        
+                std::cout<<"Payload created!!"<<payload.length()<<std::endl;
+         
         }
 
         SendHelper(payload);

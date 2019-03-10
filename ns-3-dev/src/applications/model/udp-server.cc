@@ -35,6 +35,8 @@
 #include "udp-server.h"
 
 #include <fstream>
+#include <unistd.h>
+#include <cmath>
 
 namespace ns3 {
 
@@ -162,47 +164,56 @@ UdpServer::StopApplication ()
     {
       m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
     }
-  
-  logTime(); //idli
+
+       
+        deltaHighETime = highEEndTime-highEStartTime;
+        
+     if(deltalowETime > 0 && deltaHighETime > 0) {
+                deltaTime = deltalowETime - deltaHighETime;
+
+                std::ofstream ofs;
+                ofs.open ("Results.txt", std::ofstream::out | std::ofstream::app);
+
+                ofs << "Simulation "<< " time diff :: "<<deltaTime.GetMilliSeconds() << " = "<< deltalowETime.GetMilliSeconds() << " - "<< deltaHighETime.GetMilliSeconds() <<"          ";
+                if (deltaTime.GetMilliSeconds() >= 100) {
+                      ofs << "Compression Link detected";  
+                } else {
+                      ofs << "not detected"; 
+                }
+                std::cout <<std::endl;
+                ofs << "\tLow Entropy diff :: "<<deltalowETime.GetMilliSeconds() << " = "<< lowEEndTime.GetMilliSeconds() << " - "<< lowEStartTime.GetMilliSeconds();
+                ofs << "  High Entropy diff :: "<<deltaHighETime.GetMilliSeconds() << " = "<< highEEndTime.GetMilliSeconds() << " - "<< highEStartTime.GetMilliSeconds() <<std::endl;
+                ofs.close();
+
+   }
+
+
 }
 
 void
-UdpServer::logTime() {
+UdpServer::logTime(int seqNo, int highEntropy) {
         //idli
-        int counter = 0;
         std::cout << std::endl<<std::endl<<std::endl;
-        
-        if(isHighEntropy == false) {
-        //if(m_received <= 6000) {
-              lowEStartTime = startTime;
-              lowEEndTime = endTime;
-              deltalowETime = endTime-startTime;
-                // sleep
-        } else if (isHighEntropy == true) {
-         // } else if (m_received > 6000) {
-              highEStartTime = startTime;
-              highEEndTime = endTime;
-              deltaHighETime = endTime-startTime;
-          }
-        
-        if(deltaHighETime > 0 && deltalowETime > 0) {
-              deltaTime = deltaHighETime - deltalowETime;
-                counter += 1;
+        int changeAfter = 6000;
+        if(m_received == 1 && highEntropy == 0) {
+                lowEStartTime = Simulator::Now();
+        } else if(seqNo>=changeAfter && highEntropy == 0) {
+                if(lowEEndTime == 0) {
+                        lowEEndTime = Simulator::Now();
+                        deltalowETime = lowEEndTime-lowEStartTime;
+                }
+                
+                highEntropy = 1;
         }
 
-        std::cout << "startTime : " << startTime;
-        std::cout << "endTime : " << endTime;
-        std::cout << "Time diff  : " << endTime-startTime;
 
-        // ofstream::open / ofstream::close
-        // std::ofstream
-        std::ofstream ofs;
-        ofs.open ("Results.txt", std::ofstream::out | std::ofstream::app);
+        if(seqNo>=changeAfter && highEntropy == 1 && highEStartTime == 0) {
+                highEStartTime = Simulator::Now();
+        } else if(seqNo>=changeAfter && highEntropy == 1 && highEStartTime > 0) {
+                 highEEndTime = Simulator::Now();
 
-        ofs << "Simulation "<< counter << " time diff:: "<<deltaTime << " = "<< deltaHighETime << " - "<< deltalowETime <<std::endl;
-
-        ofs.close();
-
+        }
+  
 }
 
 void
@@ -210,16 +221,7 @@ UdpServer::HandleRead (Ptr<Socket> socket)
 {
         //idli
         std::cout <<"======================="<<counter<<"========================"<<std::endl;
-        std::cout<< "m_received  : "<<m_received<<std::endl;
-        if(m_received == 0) {     
-                startTime = Simulator::Now();
-                std::cout<< "taking start time "<<std::endl;
-        } else {
-                endTime = Simulator::Now();
-                std::cout<< "taking end time "<<std::endl;
-        }
 
-  counter += 1;
   NS_LOG_FUNCTION (this << socket);
   Ptr<Packet> packet;
   Address from;
@@ -232,12 +234,15 @@ UdpServer::HandleRead (Ptr<Socket> socket)
       if (packet->GetSize () > 0)
         {
 
-
-
           SeqTsHeader seqTs;
           packet->RemoveHeader (seqTs);
 
         // idli
+
+        std::cout<< "m_received  : "<<m_received<<std::endl;
+    
+        counter += 1;
+
         uint8_t *buffer = new uint8_t[packet->GetSize ()];
         packet->CopyData(buffer, packet->GetSize ());
         std::cout<<"Packet data at Server side :"<<std::endl<<*packet<<std::endl;
@@ -248,6 +253,13 @@ UdpServer::HandleRead (Ptr<Socket> socket)
         //idli
 
           uint32_t currentSequenceNumber = seqTs.GetSeq ();
+
+
+        //
+        logTime(currentSequenceNumber, highEntropy);
+        //
+
+
           if (InetSocketAddress::IsMatchingType (from))
             {
               NS_LOG_INFO ("TraceDelay: RX " << packet->GetSize () <<
