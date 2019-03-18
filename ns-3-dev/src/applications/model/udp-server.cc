@@ -165,9 +165,10 @@ UdpServer::StopApplication ()
       m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
     }
 
-       
+       //idli
+        deltalowETime = lowEEndTime-lowEStartTime;  
         deltaHighETime = highEEndTime-highEStartTime;
-        
+
      if(deltalowETime > 0 && deltaHighETime > 0) {
                 deltaTime = deltalowETime - deltaHighETime;
 
@@ -175,52 +176,59 @@ UdpServer::StopApplication ()
                 ofs.open ("Results.txt", std::ofstream::out | std::ofstream::app);
 
                 ofs << "Simulation "<< " time diff :: "<<deltaTime.GetMilliSeconds() << " = "<< deltalowETime.GetMilliSeconds() << " - "<< deltaHighETime.GetMilliSeconds() <<"          ";
-                if (deltaTime.GetMilliSeconds() >= 100) {
-                      ofs << "Compression Link detected";  
-                } else {
-                      ofs << "not detected"; 
-                }
+
                 std::cout <<std::endl;
-                ofs << "\tLow Entropy diff :: "<<deltalowETime.GetMilliSeconds() << " = "<< lowEEndTime.GetMilliSeconds() << " - "<< lowEStartTime.GetMilliSeconds();
-                ofs << "  High Entropy diff :: "<<deltaHighETime.GetMilliSeconds() << " = "<< highEEndTime.GetMilliSeconds() << " - "<< highEStartTime.GetMilliSeconds() <<std::endl;
+                //ofs << "Low :: "<<deltalowETime.GetMilliSeconds() << " = "<< lowEEndTime.GetMilliSeconds() << " - "<< lowEStartTime.GetMilliSeconds();
+                //ofs << "        High :: "<<deltaHighETime.GetMilliSeconds() << " = "<< highEEndTime.GetMilliSeconds() << " - "<< highEStartTime.GetMilliSeconds();
+                ofs << "Low :: "<<deltalowETime << " = "<< lowEEndTime << " - "<< lowEStartTime;
+                ofs << "        High :: "<<deltaHighETime << " = "<< highEEndTime << " - "<< highEStartTime;
+                if (deltaTime.GetMilliSeconds() >= 100) {
+                      ofs << " -- Compression Link detected"<<std::endl;;  
+                } else {
+                      ofs << " -- not detected"<<std::endl;; 
+                }
                 ofs.close();
 
    }
-
+  //idli
 
 }
 
 void
-UdpServer::logTime(int seqNo, int highEntropy) {
+UdpServer::logTime(int seqNo, Time seqTS) {
         //idli
         std::cout << std::endl<<std::endl<<std::endl;
         int changeAfter = 6000;
-        if(m_received == 1 && highEntropy == 0) {
-                lowEStartTime = Simulator::Now();
-        } else if(seqNo>=changeAfter && highEntropy == 0) {
-                if(lowEEndTime == 0) {
-                        lowEEndTime = Simulator::Now();
-                        deltalowETime = lowEEndTime-lowEStartTime;
-                }
-                
+
+         
+         if(seqNo > changeAfter) {
                 highEntropy = 1;
+         } else {
+                 highEntropy = 0;
+         }
+
+        if(highEntropy == 0) { //for low entropy
+            if(lowEStartTime != 0) {
+              lowEEndTime = seqTS;//Simulator::Now();
+              
+            } else {
+              lowEStartTime = seqTS;//Simulator::Now();
+            }
+        } else { //for high entropy
+            if(highEStartTime != 0) {
+              highEEndTime = seqTS;//Simulator::Now();
+              
+            } else {
+              highEStartTime = seqTS;//Simulator::Now();
+            }
         }
-
-
-        if(seqNo>=changeAfter && highEntropy == 1 && highEStartTime == 0) {
-                highEStartTime = Simulator::Now();
-        } else if(seqNo>=changeAfter && highEntropy == 1 && highEStartTime > 0) {
-                 highEEndTime = Simulator::Now();
-
-        }
-  
 }
 
 void
 UdpServer::HandleRead (Ptr<Socket> socket)
 {
         //idli
-        std::cout <<"======================="<<counter<<"========================"<<std::endl;
+       // std::cout <<"======================="<<counter<<"========================"<<std::endl;
 
   NS_LOG_FUNCTION (this << socket);
   Ptr<Packet> packet;
@@ -239,29 +247,28 @@ UdpServer::HandleRead (Ptr<Socket> socket)
 
         // idli
 
-        std::cout<< "m_received  : "<<m_received<<std::endl;
+       // std::cout<< "m_received  : "<<m_received<<std::endl;
     
         counter += 1;
 
         uint8_t *buffer = new uint8_t[packet->GetSize ()];
         packet->CopyData(buffer, packet->GetSize ());
-        std::cout<<"Packet data at Server side :"<<std::endl<<*packet<<std::endl;
+       // std::cout<<"Packet data at Server side :"<<std::endl<<*packet<<std::endl;
         //idli
         //idli
         std::string data = std::string(buffer, buffer+packet->GetSize());
-        std::cout<<"Received data at Server side :"<<std::endl<<data<<std::endl;
+       // std::cout<<"Received data at Server side :"<<std::endl<<data<<std::endl;
         //idli
 
           uint32_t currentSequenceNumber = seqTs.GetSeq ();
 
 
-        //
-        logTime(currentSequenceNumber, highEntropy);
-        //
 
 
+          Time now;
           if (InetSocketAddress::IsMatchingType (from))
             {
+              now  = Simulator::Now ();
               NS_LOG_INFO ("TraceDelay: RX " << packet->GetSize () <<
                            " bytes from "<< InetSocketAddress::ConvertFrom (from).GetIpv4 () <<
                            " Sequence Number: " << currentSequenceNumber <<
@@ -283,8 +290,13 @@ UdpServer::HandleRead (Ptr<Socket> socket)
 
           m_lossCounter.NotifyReceived (currentSequenceNumber);
           m_received++;
+        //
+        logTime(currentSequenceNumber, now);
+        //
         }
     }
+
+
 }
 
 } // Namespace ns3

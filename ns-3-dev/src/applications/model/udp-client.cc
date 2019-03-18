@@ -187,7 +187,7 @@ UdpClient::Send (void)
 
 // idli 
 
-std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXXXXXXX"<<std::endl;
+//std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXXXXXXX"<<std::endl;
 
   
   std::string payload;
@@ -210,33 +210,36 @@ std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXX
               
                 //SendHelper(payload);
         } 
-         //ugly hack
-        if (counter > (m_count/2)+1 ) {
-           if(isHighEntropy == false) {
-               sleep(2);
-                }
-             isHighEntropy = true; 
-                  
-        }
 
 
-        if (isHighEntropy == true) { //for greater than 600
+
+        if (isHighEntropy == true) { //for greater than 6000
                 payload = readRandomPayload();
         
-                std::cout<<"Payload created!!"<<payload.length()<<std::endl;
+               // std::cout<<"Payload created!!"<<payload.length()<<std::endl;
          
         }
 
         SendHelper(payload);
         
    //}
+
+
+           //ugly hack
+        if (counter >= (m_count/2)+1 ) {
+           if(isHighEntropy == false) {
+               sleep(4);
+                }
+             isHighEntropy = true; 
+                  
+        }
  
 } //send
 
 std::string
 UdpClient::readRandomPayload() {
 
-  std::cout<<"In readRandomPayload()";
+  //std::cout<<"In readRandomPayload()";
   //int length = 1100;
   //har *str = new char;  
   char *buffer = NULL;
@@ -257,8 +260,8 @@ UdpClient::readRandomPayload() {
 
     is.close();
     // print content:
-        std::cout<<"Buffer content:";
-    std::cout.write (buffer,length);
+        //std::cout<<"Buffer content:";
+   // std::cout.write (buffer,length);
   }
   //memset(str, '\0', length + 1);
 
@@ -282,7 +285,7 @@ Ptr<Packet> p;
 
           //std::cout<<"payload:"<<payload<<std::endl;
    p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),payload.length());   
-   std::cout << "Packet initial - at client side : " << std::endl<< *p<<"end" <<std::endl;
+  // std::cout << "Packet initial - at client side : " << std::endl<< *p<<"end" <<std::endl;
 
 
 // idli
