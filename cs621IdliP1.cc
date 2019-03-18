@@ -60,7 +60,7 @@ generateRandomPayloadFile() {
 	randomPayloadFile << s.str();
 	s.str("");
   	randomPayloadFile.close();
-  	std::cout<<"Random bits generatio complete" << std::endl;
+  	std::cout<<"Random bits generation complete" << std::endl;
 }
 
 
@@ -86,21 +86,21 @@ main(int argc, char *argv[])
     			compressionFlag = false;
     		}
 
-    		int minDataRate = std::get<1>(configParameters);
-    		int maxDataRate = std::get<2>(configParameters); 
+    		//int minDataRate = std::get<1>(configParameters);
+    		//int maxDataRate = std::get<2>(configParameters); 
     		std::string protocol = std::get<3>(configParameters);
-    		std::cout<<"Config Parameters" << std::endl;
-    		std::cout<<"Compression:" << compressionFlag << std::endl;
-    		std::cout<<"minDataRate:" << minDataRate << std::endl;
-    		std::cout<<"maxDataRate:" << maxDataRate << std::endl;
-    		std::cout<<"protocol:" << protocol << std::endl;
+    		//std::cout<<"Config Parameters" << std::endl;
+    		//std::cout<<"Compression:" << compressionFlag << std::endl;
+    		//std::cout<<"minDataRate:" << minDataRate << std::endl;
+    		//std::cout<<"maxDataRate:" << maxDataRate << std::endl;
+    		//std::cout<<"protocol:" << protocol << std::endl;
 
-    		//////////////////////////generateRandomPayloadFile();	
+    		//generateRandomPayloadFile();	/// remove this comment when project ready idli
     		
     		// Initiate simulation with 30 second interval between two packet trains
     		
-			for(int i = 1; i<=10; i++)	{
-				sleep(2);
+			for(int i = 8; i<=8; i++)	{ // data rate change here
+				
 				makeSimulation("EXP_"+std::to_string(i)+"_", std::string (std::to_string(i)+"Mbps"), compressionFlag, i);
 			}
     	}		
@@ -112,11 +112,13 @@ void
 makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compressionFlag, int round){
 	std::cout<<"cs621 Idli P1\n\n";
     //Time::SetResolution(Time::NS);
-    LogComponentEnable ("PointToPointNetDevice", LOG_LEVEL_INFO);
-    LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
+    //LogComponentEnable ("PointToPointNetDevice", LOG_LEVEL_INFO);
+    //LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
     LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
-
-	Packet::EnablePrinting();
+//idlilate
+	Config::SetDefault("ns3::QueueBase::MaxSize",StringValue("12000p"));
+//idlilate
+	//Packet::EnablePrinting();
 
     //creating 4 nodes
     NodeContainer nodes;
@@ -131,16 +133,25 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
     PointToPointHelper pointToPoint;
 
     pointToPoint.SetDeviceAttribute("DataRate", StringValue ("8Mbps"));
-    pointToPoint.SetChannelAttribute("Delay", StringValue (".1ms"));
+    pointToPoint.SetChannelAttribute("Delay", StringValue ("0ms"));
+//now idli
+//pointToPoint.SetQueue("ns3::DropTailQueue","MaxPackets",UintegerValue(12000));
+//now idli
     //create netDeviceContainer - makes use of pointtopoint helper
     NetDeviceContainer ndc01 = pointToPoint.Install (nodes.Get (0), nodes.Get (1));
 
     pointToPoint.SetDeviceAttribute("DataRate", StringValue (routersdataRate));
-    pointToPoint.SetChannelAttribute("Delay", StringValue (".1ms"));
+    pointToPoint.SetChannelAttribute("Delay", StringValue ("0ms"));
+//now idli
+//pointToPoint.SetQueue("ns3::DropTailQueue","MaxPackets",UintegerValue(12000));
+//now idli
     NetDeviceContainer ndc12 = pointToPoint.Install (nodes.Get (1), nodes.Get (2));
 
    	pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("8Mbps"));
-    pointToPoint.SetChannelAttribute ("Delay", StringValue (".1ms"));
+    pointToPoint.SetChannelAttribute ("Delay", StringValue ("0ms"));
+//now idli
+//pointToPoint.SetQueue("ns3::DropTailQueue",  "MaxPackets",UintegerValue(12000));
+//now idli
     NetDeviceContainer ndc23 = pointToPoint.Install (nodes.Get (2), nodes.Get (3));
 
 	Ptr<PointToPointNetDevice> ppp1 = DynamicCast<PointToPointNetDevice>(ndc12.Get (0));
@@ -151,10 +162,10 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 		ppp2->EnableDecompression();
 		
 	}
-	bool compress = ppp1->GetCompression();
-	bool decompress = ppp2->GetDecompression();
-	std::cout<<"Compress:"<<compress<<std::endl;
-	std::cout<<"Decompress:"<<decompress<<std::endl;
+	//bool compress = ppp1->GetCompression();
+	//bool decompress = ppp2->GetDecompression();
+//	std::cout<<"Compress:"<<compress<<std::endl;
+//	std::cout<<"Decompress:"<<decompress<<std::endl;
 	
 	//idli
     //use ipv4addresshelper for allocation of ip address
@@ -185,10 +196,10 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
   	ApplicationContainer serverApps = server.Install (nodes.Get (3));
 
   	serverApps.Start (Seconds (1.0));
-  	serverApps.Stop (Seconds (500000.0));
+  	serverApps.Stop (Seconds (50000.0));
 
 	uint32_t MaxPacketSize = 1150;//5+7; //config file
-   	Time interPacketInterval = Seconds (0.0001); //config file
+   	Time interPacketInterval = Seconds (0);
    	uint32_t maxPacketCount = 12000; //config file
  	UdpClientHelper client (ifc23.GetAddress(1), port);
 
@@ -197,10 +208,8 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
   	client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   	ApplicationContainer clientApps = client.Install (nodes.Get (0));
 	
-
-
   	clientApps.Start (Seconds (2.0));
-  	clientApps.Stop (Seconds (500000.0));
+  	clientApps.Stop (Seconds (50000.0));
 
 	//ascii and pcap generate
 	AsciiTraceHelper ascii;
