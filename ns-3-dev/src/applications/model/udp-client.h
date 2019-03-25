@@ -47,22 +47,14 @@ public:
 
 //idli
 
-uint32_t counter = 1;
-
-//idli
+   //uint32_t counter = 1;
+   int    payloadStartPosition = 0;   
+   bool isHighEntropy = false; // for entropy
+   int m_isHighEntropy; // for entropy
 
    std::string readRandomPayload(void);
+   void setIsHighEntropy (bool he);
 
-    int    payloadStartPosition = 0;
-
-  void setIsHighEntropy (bool he);
-  //idli
-   bool isHighEntropy = false; // for entropy
-   //idli
-
-//idli1
-   int m_isHighEntropy; // for entropy
-//idli1
 //idli
 
   /**

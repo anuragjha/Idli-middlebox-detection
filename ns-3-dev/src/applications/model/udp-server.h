@@ -51,25 +51,12 @@ public:
 
    //idli
 
-   int counter = 1;
+   //int counter = 1;
    int m_isHighEntropy;
 
-
-
-   Time lowEStartTime;
-   Time lowEEndTime;
-   Time deltalowETime;
-
-   Time highEStartTime;
-   Time highEEndTime;
-   Time deltaHighETime;
-
    Time deltaTime;
-    Time startTime;    
-    Time endTime;    
-
-   int isHighEntropy;
-   int highEntropy;     
+   Time startTime;    
+   Time endTime;        
 
    void logTime(int, Time);
 
@@ -89,9 +76,9 @@ public:
   uint32_t GetLost (void) const;
 
 //me
-  Time GetHighEntropyTime (void);
+  //Time GetHighEntropyTime (void);
 
-  Time GetLowEntropyTime (void);
+  //Time GetLowEntropyTime (void);
 //me
   /**
    * \brief Returns the number of received packets

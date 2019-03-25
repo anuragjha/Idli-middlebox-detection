@@ -89,22 +89,7 @@ namespace ns3 {
 		NS_LOG_FUNCTION (this);
 	}
 
-//me
-	Time
-	UdpServer::GetHighEntropyTime (void) 
-	{
-		NS_LOG_FUNCTION (this);
-		return deltaHighETime;
-	}
 
-	Time
-	UdpServer::GetLowEntropyTime (void) 
-	{
-		NS_LOG_FUNCTION (this);
-		return deltalowETime;
-	}
-
-//me
 	uint16_t
 	UdpServer::GetPacketWindowSize () const
 	{
@@ -186,17 +171,7 @@ namespace ns3 {
 		}
 
 		//idli
-		//    deltalowETime = lowEEndTime-lowEStartTime;  
-		//   deltaHighETime = highEEndTime-highEStartTime;
 		deltaTime = endTime - startTime;
-		//if(deltalowETime > 0 && deltaHighETime > 0) {
-		//           deltaTime = deltalowETime - deltaHighETime;
-
-    //if(m_isHighEntropy == 1){
-   //     deltaHighETime = deltaTime;
-   // }else{
-   //     deltalowETime = deltaTime;
-   // }
 
 		std::ofstream ofs;
 		ofs.open ("Results.txt", std::ofstream::out | std::ofstream::app);
@@ -204,17 +179,12 @@ namespace ns3 {
 		ofs << "Simulation "<< " time diff :: "<<deltaTime.GetMilliSeconds() << " = "<< endTime.GetMilliSeconds() << " - "<< startTime.GetMilliSeconds() <<"          "<<std::endl;
 
 		ofs.close();
-
-		//}
 		//idli
 
 	}
 
 	void
 	UdpServer::logTime(int seqNo, Time seqTS) {
-		//idli
-		// std::cout << std::endl<<std::endl<<std::endl;
-		//int changeAfter = 6000;
 
 		if(seqNo == 0) {
 			startTime = seqTS;
@@ -229,8 +199,6 @@ namespace ns3 {
 	void
 	UdpServer::HandleRead (Ptr<Socket> socket)
 	{
-		//idli
-		// std::cout <<"======================="<<counter<<"========================"<<std::endl;
 
 		NS_LOG_FUNCTION (this << socket);
 		Ptr<Packet> packet;
@@ -249,17 +217,12 @@ namespace ns3 {
 
 				// idli
 
-				// std::cout<< "m_received  : "<<m_received<<std::endl;
-
-				counter += 1;
+				//counter += 1;
 
 				uint8_t *buffer = new uint8_t[packet->GetSize ()];
 				packet->CopyData(buffer, packet->GetSize ());
-				// std::cout<<"Packet data at Server side :"<<std::endl<<*packet<<std::endl;
-				//idli
-				//idli
 				std::string data = std::string(buffer, buffer+packet->GetSize());
-				// std::cout<<"Received data at Server side :"<<std::endl<<data<<std::endl;
+				
 				//idli
 
 				uint32_t currentSequenceNumber = seqTs.GetSeq ();
@@ -289,9 +252,9 @@ namespace ns3 {
 
 				m_lossCounter.NotifyReceived (currentSequenceNumber);
 				m_received++;
-				//
+				//idli
 				logTime(currentSequenceNumber, now);
-				//
+				//idli
 			}
 		}
 

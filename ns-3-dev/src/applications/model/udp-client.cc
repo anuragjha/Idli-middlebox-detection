@@ -190,62 +190,27 @@ namespace ns3 {
 		NS_ASSERT (m_sendEvent.IsExpired ());
 
 		// idli 
-
-		//std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXXXXXXX"<<std::endl;
-
-
 		std::string payload;
-
-		// if (counter == (m_count/2)+1) { //checking to reach 6000 on m_sent
-		//       std::cout <<std::endl<<std::endl<< "!!! SLEEPING NOW !!!!"<<std::endl<<std::endl;
-		//     sleep(4); 
-
-		//isHighEntropy = false; ///idliidliidli
-
-		// }
-		counter = counter +1; //increasing counter
-
+		//counter = counter +1; //increasing counter
 
 		if(m_isHighEntropy == 0) { //for less than 6000  //idli1
 			//creating all 0s payload
 			for(int n = 0; n<1100; n++) { //1100 range
 				payload += std::to_string(0);      
 			}
-
-			//SendHelper(payload);
 		} 
-
-
 
 		if (m_isHighEntropy == 1) { //for greater than 6000 //idli1
 			payload = readRandomPayload();
-
-			// std::cout<<"Payload created!!"<<payload.length()<<std::endl;
-
 		}
 
 		SendHelper(payload);
-
-		//}
-
-
-		//ugly hack
-		//    if (counter >= (m_count/2)+1 ) {
-		//      if(m_isHighEntropy == 0) { //idli1
-		//           sleep(4);
-		//             }
-		//        m_isHighEntropy = 1;  //idli1
-
-		//    }
 
 	} //send
 
 	std::string
 	UdpClient::readRandomPayload() {
-
-		//std::cout<<"In readRandomPayload()";
-		//int length = 1100;
-		//har *str = new char;  
+ 
 		char *buffer = NULL;
 		unsigned int length = 1100;
 		std::ifstream is ("randomPayload.txt", std::ifstream::binary);
@@ -253,9 +218,7 @@ namespace ns3 {
 			// get length of file:
 			is.seekg (payloadStartPosition, is.beg);
 			payloadStartPosition += 1100;
-			// int size = is.tellg();
-			// is.seekg (0, is.beg);
-
+			
 			// allocate memory:
 			buffer = new char [length];
 
@@ -263,17 +226,12 @@ namespace ns3 {
 			is.read (buffer,length);
 
 			is.close();
-			// print content:
-			//std::cout<<"Buffer content:";
-			// std::cout.write (buffer,length);
 		}
-		//memset(str, '\0', length + 1);
-
 		std::string s(buffer, length);
 		delete (buffer);
 
 		return s;  
-	}
+	} //readRandomPayload
 
 
 	void
@@ -283,17 +241,9 @@ namespace ns3 {
 		SeqTsHeader seqTs;
 		seqTs.SetSeq (m_sent);
 
-		// Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
-
 		Ptr<Packet> p;
 
-		//std::cout<<"payload:"<<payload<<std::endl;
-		p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),payload.length());   
-		// std::cout << "Packet initial - at client side : " << std::endl<< *p<<"end" <<std::endl;
-
-
-		// idli
-
+		p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),payload.length());//idli   
 
 		p->AddHeader (seqTs);
 
@@ -326,18 +276,6 @@ namespace ns3 {
 		{
 			m_sendEvent = Simulator::Schedule (m_interval, &UdpClient::Send, this);
 		}
-
-
-
-
-
-
-
-
-
-
-
-
 
 	} //sendhelper
 
