@@ -57,6 +57,10 @@ namespace ns3 {
 						UintegerValue (100),
 						MakeUintegerAccessor (&UdpServer::m_port),
 						MakeUintegerChecker<uint16_t> ())
+        .AddAttribute ("IsHighEntropy", "Set high entropy", //idli1
+						UintegerValue (1),
+						MakeUintegerAccessor (&UdpServer::m_isHighEntropy),
+						MakeUintegerChecker<uint16_t> ())
 				.AddAttribute ("PacketWindowSize",
 						"The size of the window used to compute the packet loss. This value should be a multiple of 8.",
 						UintegerValue (32),
@@ -85,6 +89,22 @@ namespace ns3 {
 		NS_LOG_FUNCTION (this);
 	}
 
+//me
+	Time
+	UdpServer::GetHighEntropyTime (void) 
+	{
+		NS_LOG_FUNCTION (this);
+		return deltaHighETime;
+	}
+
+	Time
+	UdpServer::GetLowEntropyTime (void) 
+	{
+		NS_LOG_FUNCTION (this);
+		return deltalowETime;
+	}
+
+//me
 	uint16_t
 	UdpServer::GetPacketWindowSize () const
 	{
@@ -172,21 +192,17 @@ namespace ns3 {
 		//if(deltalowETime > 0 && deltaHighETime > 0) {
 		//           deltaTime = deltalowETime - deltaHighETime;
 
+    //if(m_isHighEntropy == 1){
+   //     deltaHighETime = deltaTime;
+   // }else{
+   //     deltalowETime = deltaTime;
+   // }
+
 		std::ofstream ofs;
 		ofs.open ("Results.txt", std::ofstream::out | std::ofstream::app);
 
 		ofs << "Simulation "<< " time diff :: "<<deltaTime.GetMilliSeconds() << " = "<< endTime.GetMilliSeconds() << " - "<< startTime.GetMilliSeconds() <<"          "<<std::endl;
 
-		// std::cout <<std::endl;
-		//ofs << "Low :: "<<deltalowETime.GetMilliSeconds() << " = "<< lowEEndTime.GetMilliSeconds() << " - "<< lowEStartTime.GetMilliSeconds();
-		//ofs << "        High :: "<<deltaHighETime.GetMilliSeconds() << " = "<< highEEndTime.GetMilliSeconds() << " - "<< highEStartTime.GetMilliSeconds();
-		// ofs << "Low :: "<<deltalowETime << " = "<< lowEEndTime << " - "<< lowEStartTime;
-		// ofs << "        High :: "<<deltaHighETime << " = "<< highEEndTime << " - "<< highEStartTime;
-		// if (deltaTime.GetMilliSeconds() >= 100) {
-		//       ofs << " -- Compression Link detected"<<std::endl;;  
-		// } else {
-		//       ofs << " -- not detected"<<std::endl;; 
-		// }
 		ofs.close();
 
 		//}

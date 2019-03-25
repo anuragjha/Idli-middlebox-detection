@@ -52,6 +52,7 @@ public:
    //idli
 
    int counter = 1;
+   int m_isHighEntropy;
 
 
 
@@ -87,6 +88,11 @@ public:
    */
   uint32_t GetLost (void) const;
 
+//me
+  Time GetHighEntropyTime (void);
+
+  Time GetLowEntropyTime (void);
+//me
   /**
    * \brief Returns the number of received packets
    * \return the number of received packets
