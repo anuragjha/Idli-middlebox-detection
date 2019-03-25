@@ -53,8 +53,7 @@ public:
 
    int counter = 1;
 
-   Time startTime;
-   Time endTime;
+
 
    Time lowEStartTime;
    Time lowEEndTime;
@@ -65,10 +64,13 @@ public:
    Time deltaHighETime;
 
    Time deltaTime;
+    Time startTime;    
+    Time endTime;    
 
-   bool isHighEntropy;
+   int isHighEntropy;
+   int highEntropy;     
 
-   void logTime(void);
+   void logTime(int, Time);
 
    //idli
 

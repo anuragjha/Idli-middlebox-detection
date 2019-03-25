@@ -42,292 +42,290 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("UdpClient");
+	NS_LOG_COMPONENT_DEFINE ("UdpClient");
 
-NS_OBJECT_ENSURE_REGISTERED (UdpClient);
+	NS_OBJECT_ENSURE_REGISTERED (UdpClient);
 
-TypeId
-UdpClient::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::UdpClient")
-    .SetParent<Application> ()
-    .SetGroupName("Applications")
-    .AddConstructor<UdpClient> ()
-    .AddAttribute ("MaxPackets",
-                   "The maximum number of packets the application will send",
-                   UintegerValue (100),
-                   MakeUintegerAccessor (&UdpClient::m_count),
-                   MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("Interval",
-                   "The time to wait between packets", TimeValue (Seconds (1.0)),
-                   MakeTimeAccessor (&UdpClient::m_interval),
-                   MakeTimeChecker ())
-    .AddAttribute ("RemoteAddress",
-                   "The destination Address of the outbound packets",
-                   AddressValue (),
-                   MakeAddressAccessor (&UdpClient::m_peerAddress),
-                   MakeAddressChecker ())
-    .AddAttribute ("RemotePort", "The destination port of the outbound packets",
-                   UintegerValue (100),
-                   MakeUintegerAccessor (&UdpClient::m_peerPort),
-                   MakeUintegerChecker<uint16_t> ())
-    .AddAttribute ("PacketSize",
-                   "Size of packets generated. The minimum packet size is 12 bytes which is the size of the header carrying the sequence number and the time stamp.",
-                   UintegerValue (1024),
-                   MakeUintegerAccessor (&UdpClient::m_size),
-                   MakeUintegerChecker<uint32_t> (12,65507))
-  ;
-  return tid;
-}
+	TypeId
+	UdpClient::GetTypeId (void)
+	{
+		static TypeId tid = TypeId ("ns3::UdpClient")
+				.SetParent<Application> ()
+				.SetGroupName("Applications")
+				.AddConstructor<UdpClient> ()
+				.AddAttribute ("MaxPackets",
+						"The maximum number of packets the application will send",
+						UintegerValue (100),
+						MakeUintegerAccessor (&UdpClient::m_count),
+						MakeUintegerChecker<uint32_t> ())
+				.AddAttribute ("Interval",
+						"The time to wait between packets", TimeValue (Seconds (1.0)),
+						MakeTimeAccessor (&UdpClient::m_interval),
+						MakeTimeChecker ())
+				.AddAttribute ("RemoteAddress",
+						"The destination Address of the outbound packets",
+						AddressValue (),
+						MakeAddressAccessor (&UdpClient::m_peerAddress),
+						MakeAddressChecker ())
+				.AddAttribute ("RemotePort", "The destination port of the outbound packets",
+						UintegerValue (100),
+						MakeUintegerAccessor (&UdpClient::m_peerPort),
+						MakeUintegerChecker<uint16_t> ())
+				.AddAttribute ("IsHighEntropy", "Set high entropy", //idli1
+						UintegerValue (1),
+						MakeUintegerAccessor (&UdpClient::m_isHighEntropy),
+						MakeUintegerChecker<uint16_t> ())
+				.AddAttribute ("PacketSize",
+						"Size of packets generated. The minimum packet size is 12 bytes which is the size of the header carrying the sequence number and the time stamp.",
+						UintegerValue (1024),
+						MakeUintegerAccessor (&UdpClient::m_size),
+						MakeUintegerChecker<uint32_t> (12,65507))
+				;
+		return tid;
+	}
 
-UdpClient::UdpClient ()
-{
-  NS_LOG_FUNCTION (this);
-  m_sent = 0;
-  m_socket = 0;
-  m_sendEvent = EventId ();
-}
+	UdpClient::UdpClient ()
+	{
+		NS_LOG_FUNCTION (this);
+		m_sent = 0;
+		m_socket = 0;
+		m_sendEvent = EventId ();
+	}
 
-UdpClient::~UdpClient ()
-{
-  NS_LOG_FUNCTION (this);
-}
+	UdpClient::~UdpClient ()
+	{
+		NS_LOG_FUNCTION (this);
+	}
 
-void
-UdpClient::SetRemote (Address ip, uint16_t port)
-{
-  NS_LOG_FUNCTION (this << ip << port);
-  m_peerAddress = ip;
-  m_peerPort = port;
-}
+	void
+	UdpClient::SetRemote (Address ip, uint16_t port)
+	{
+		NS_LOG_FUNCTION (this << ip << port);
+		m_peerAddress = ip;
+		m_peerPort = port;
+	}
 
-void
-UdpClient::SetRemote (Address addr)
-{
-  NS_LOG_FUNCTION (this << addr);
-  m_peerAddress = addr;
-}
+	void
+	UdpClient::SetRemote (Address addr)
+	{
+		NS_LOG_FUNCTION (this << addr);
+		m_peerAddress = addr;
+	}
 
-void
-UdpClient::setIsHighEntropy (bool he){
-        isHighEntropy = he;
-}
+	void
+	UdpClient::setIsHighEntropy (bool he){
+		isHighEntropy = he;
+	}
 
-void
-UdpClient::DoDispose (void)
-{
-  NS_LOG_FUNCTION (this);
-  Application::DoDispose ();
-}
+	void
+	UdpClient::DoDispose (void)
+	{
+		NS_LOG_FUNCTION (this);
+		Application::DoDispose ();
+	}
 
-void
-UdpClient::StartApplication (void)
-{
-  NS_LOG_FUNCTION (this);
+	void
+	UdpClient::StartApplication (void)
+	{
+		NS_LOG_FUNCTION (this);
 
-  if (m_socket == 0)
-    {
-      TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
-      m_socket = Socket::CreateSocket (GetNode (), tid);
-      if (Ipv4Address::IsMatchingType(m_peerAddress) == true)
-        {
-          if (m_socket->Bind () == -1)
-            {
-              NS_FATAL_ERROR ("Failed to bind socket");
-            }
-          m_socket->Connect (InetSocketAddress (Ipv4Address::ConvertFrom(m_peerAddress), m_peerPort));
-        }
-      else if (Ipv6Address::IsMatchingType(m_peerAddress) == true)
-        {
-          if (m_socket->Bind6 () == -1)
-            {
-              NS_FATAL_ERROR ("Failed to bind socket");
-            }
-          m_socket->Connect (Inet6SocketAddress (Ipv6Address::ConvertFrom(m_peerAddress), m_peerPort));
-        }
-      else if (InetSocketAddress::IsMatchingType (m_peerAddress) == true)
-        {
-          if (m_socket->Bind () == -1)
-            {
-              NS_FATAL_ERROR ("Failed to bind socket");
-            }
-          m_socket->Connect (m_peerAddress);
-        }
-      else if (Inet6SocketAddress::IsMatchingType (m_peerAddress) == true)
-        {
-          if (m_socket->Bind6 () == -1)
-            {
-              NS_FATAL_ERROR ("Failed to bind socket");
-            }
-          m_socket->Connect (m_peerAddress);
-        }
-      else
-        {
-          NS_ASSERT_MSG (false, "Incompatible address type: " << m_peerAddress);
-        }
-    }
+		if (m_socket == 0)
+		{
+			TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
+			m_socket = Socket::CreateSocket (GetNode (), tid);
+			if (Ipv4Address::IsMatchingType(m_peerAddress) == true)
+			{
+				if (m_socket->Bind () == -1)
+				{
+					NS_FATAL_ERROR ("Failed to bind socket");
+				}
+				m_socket->Connect (InetSocketAddress (Ipv4Address::ConvertFrom(m_peerAddress), m_peerPort));
+			}
+			else if (Ipv6Address::IsMatchingType(m_peerAddress) == true)
+			{
+				if (m_socket->Bind6 () == -1)
+				{
+					NS_FATAL_ERROR ("Failed to bind socket");
+				}
+				m_socket->Connect (Inet6SocketAddress (Ipv6Address::ConvertFrom(m_peerAddress), m_peerPort));
+			}
+			else if (InetSocketAddress::IsMatchingType (m_peerAddress) == true)
+			{
+				if (m_socket->Bind () == -1)
+				{
+					NS_FATAL_ERROR ("Failed to bind socket");
+				}
+				m_socket->Connect (m_peerAddress);
+			}
+			else if (Inet6SocketAddress::IsMatchingType (m_peerAddress) == true)
+			{
+				if (m_socket->Bind6 () == -1)
+				{
+					NS_FATAL_ERROR ("Failed to bind socket");
+				}
+				m_socket->Connect (m_peerAddress);
+			}
+			else
+			{
+				NS_ASSERT_MSG (false, "Incompatible address type: " << m_peerAddress);
+			}
+		}
 
-  m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
-  m_socket->SetAllowBroadcast (true);
-  m_sendEvent = Simulator::Schedule (Seconds (0.0), &UdpClient::Send, this);
-}
+		m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+		m_socket->SetAllowBroadcast (true);
+		m_sendEvent = Simulator::Schedule (Seconds (0.0), &UdpClient::Send, this);
+	}
 
-void
-UdpClient::StopApplication (void)
-{
-  NS_LOG_FUNCTION (this);
-  Simulator::Cancel (m_sendEvent);
-}
+	void
+	UdpClient::StopApplication (void)
+	{
+		NS_LOG_FUNCTION (this);
+		Simulator::Cancel (m_sendEvent);
+	}
 
-void
-UdpClient::Send (void)
-{
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_sendEvent.IsExpired ());
+	void
+	UdpClient::Send (void)
+	{
+		NS_LOG_FUNCTION (this);
+		NS_ASSERT (m_sendEvent.IsExpired ());
 
-// idli 
+		// idli 
 
-//std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXXXXXXX"<<std::endl;
-
-  
-  std::string payload;
-
-        // if (counter == (m_count/2)+1) { //checking to reach 6000 on m_sent
-         //       std::cout <<std::endl<<std::endl<< "!!! SLEEPING NOW !!!!"<<std::endl<<std::endl;
-         //     sleep(4); 
-        
-              //isHighEntropy = false; ///idliidliidli
-            
-       // }
-        counter = counter +1; //increasing counter
-        
-  
-        if(isHighEntropy == false) { //for less than 6000
-                //creating all 0s payload
-                for(int n = 0; n<1100; n++) { //1100 range
-                        payload += std::to_string(0);      
-                }
-              
-                //SendHelper(payload);
-        } 
+		//std::cout <<"XXXXXXXXXXXXXXXXXXXXXXX------"<<counter<<"-------XXXXXXXXXXXXXXXXXXXXXXX"<<std::endl;
 
 
+		std::string payload;
 
-        if (isHighEntropy == true) { //for greater than 6000
-                payload = readRandomPayload();
-        
-               // std::cout<<"Payload created!!"<<payload.length()<<std::endl;
-         
-        }
+		// if (counter == (m_count/2)+1) { //checking to reach 6000 on m_sent
+		//       std::cout <<std::endl<<std::endl<< "!!! SLEEPING NOW !!!!"<<std::endl<<std::endl;
+		//     sleep(4); 
 
-        SendHelper(payload);
-        
-   //}
+		//isHighEntropy = false; ///idliidliidli
 
-
-           //ugly hack
-        if (counter >= (m_count/2)+1 ) {
-           if(isHighEntropy == false) {
-               sleep(4);
-                }
-             isHighEntropy = true; 
-                  
-        }
- 
-} //send
-
-std::string
-UdpClient::readRandomPayload() {
-
-  //std::cout<<"In readRandomPayload()";
-  //int length = 1100;
-  //har *str = new char;  
-  char *buffer = NULL;
-  unsigned int length = 1100;
-  std::ifstream is ("randomPayload.txt", std::ifstream::binary);
-  if (is) {
-    // get length of file:
-    is.seekg (payloadStartPosition, is.beg);
-    payloadStartPosition += 1100;
-   // int size = is.tellg();
-   // is.seekg (0, is.beg);
-
-    // allocate memory:
-    buffer = new char [length];
-
-    // read data as a block:
-    is.read (buffer,length);
-
-    is.close();
-    // print content:
-        //std::cout<<"Buffer content:";
-   // std::cout.write (buffer,length);
-  }
-  //memset(str, '\0', length + 1);
-
-  std::string s(buffer, length);
-  delete (buffer);
-  
-  return s;  
-}
+		// }
+		counter = counter +1; //increasing counter
 
 
-void
-UdpClient::SendHelper (std::string payload) {
+		if(m_isHighEntropy == 0) { //for less than 6000  //idli1
+			//creating all 0s payload
+			for(int n = 0; n<1100; n++) { //1100 range
+				payload += std::to_string(0);      
+			}
 
-
-SeqTsHeader seqTs;
-  seqTs.SetSeq (m_sent);
-
- // Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
-
-Ptr<Packet> p;
-
-          //std::cout<<"payload:"<<payload<<std::endl;
-   p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),payload.length());   
-  // std::cout << "Packet initial - at client side : " << std::endl<< *p<<"end" <<std::endl;
-
-
-// idli
-
-
-  p->AddHeader (seqTs);
-
-  std::stringstream peerAddressStringStream;
-  if (Ipv4Address::IsMatchingType (m_peerAddress))
-    {
-      peerAddressStringStream << Ipv4Address::ConvertFrom (m_peerAddress);
-    }
-  else if (Ipv6Address::IsMatchingType (m_peerAddress))
-    {
-      peerAddressStringStream << Ipv6Address::ConvertFrom (m_peerAddress);
-    }
-
-  if ((m_socket->Send (p)) >= 0)
-    {
-      ++m_sent;
-      NS_LOG_INFO ("TraceDelay TX " << m_size << " bytes to "
-                                    << peerAddressStringStream.str () << " Uid: "
-                                    << p->GetUid () << " Time: "
-                                    << (Simulator::Now ()).GetSeconds ());
-
-    }
-  else
-    {
-      NS_LOG_INFO ("Error while sending " << m_size << " bytes to "
-                                          << peerAddressStringStream.str ());
-    }
-
-  if (m_sent < m_count)
-    {
-      m_sendEvent = Simulator::Schedule (m_interval, &UdpClient::Send, this);
-    }
+			//SendHelper(payload);
+		} 
 
 
 
+		if (m_isHighEntropy == 1) { //for greater than 6000 //idli1
+			payload = readRandomPayload();
+
+			// std::cout<<"Payload created!!"<<payload.length()<<std::endl;
+
+		}
+
+		SendHelper(payload);
+
+		//}
 
 
+		//ugly hack
+		//    if (counter >= (m_count/2)+1 ) {
+		//      if(m_isHighEntropy == 0) { //idli1
+		//           sleep(4);
+		//             }
+		//        m_isHighEntropy = 1;  //idli1
 
+		//    }
+
+	} //send
+
+	std::string
+	UdpClient::readRandomPayload() {
+
+		//std::cout<<"In readRandomPayload()";
+		//int length = 1100;
+		//har *str = new char;  
+		char *buffer = NULL;
+		unsigned int length = 1100;
+		std::ifstream is ("randomPayload.txt", std::ifstream::binary);
+		if (is) {
+			// get length of file:
+			is.seekg (payloadStartPosition, is.beg);
+			payloadStartPosition += 1100;
+			// int size = is.tellg();
+			// is.seekg (0, is.beg);
+
+			// allocate memory:
+			buffer = new char [length];
+
+			// read data as a block:
+			is.read (buffer,length);
+
+			is.close();
+			// print content:
+			//std::cout<<"Buffer content:";
+			// std::cout.write (buffer,length);
+		}
+		//memset(str, '\0', length + 1);
+
+		std::string s(buffer, length);
+		delete (buffer);
+
+		return s;  
+	}
+
+
+	void
+	UdpClient::SendHelper (std::string payload) {
+
+
+		SeqTsHeader seqTs;
+		seqTs.SetSeq (m_sent);
+
+		// Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
+
+		Ptr<Packet> p;
+
+		//std::cout<<"payload:"<<payload<<std::endl;
+		p = Create<Packet> (reinterpret_cast<const uint8_t*> (payload.c_str()),payload.length());   
+		// std::cout << "Packet initial - at client side : " << std::endl<< *p<<"end" <<std::endl;
+
+
+		// idli
+
+
+		p->AddHeader (seqTs);
+
+		std::stringstream peerAddressStringStream;
+		if (Ipv4Address::IsMatchingType (m_peerAddress))
+		{
+			peerAddressStringStream << Ipv4Address::ConvertFrom (m_peerAddress);
+		}
+		else if (Ipv6Address::IsMatchingType (m_peerAddress))
+		{
+			peerAddressStringStream << Ipv6Address::ConvertFrom (m_peerAddress);
+		}
+
+		if ((m_socket->Send (p)) >= 0)
+		{
+			++m_sent;
+			NS_LOG_INFO ("TraceDelay TX " << m_size << " bytes to "
+					<< peerAddressStringStream.str () << " Uid: "
+					<< p->GetUid () << " Time: "
+					<< (Simulator::Now ()).GetSeconds ());
+
+		}
+		else
+		{
+			NS_LOG_INFO ("Error while sending " << m_size << " bytes to "
+					<< peerAddressStringStream.str ());
+		}
+
+		if (m_sent < m_count)
+		{
+			m_sendEvent = Simulator::Schedule (m_interval, &UdpClient::Send, this);
+		}
 
 
 
@@ -335,6 +333,12 @@ Ptr<Packet> p;
 
 
 
-} //sendhelper
+
+
+
+
+
+
+	} //sendhelper
 
 } // Namespace ns3

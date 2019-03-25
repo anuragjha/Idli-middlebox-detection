@@ -57,9 +57,12 @@ uint32_t counter = 1;
 
   void setIsHighEntropy (bool he);
   //idli
-   bool isHighEntropy; // for entropy
+   bool isHighEntropy = false; // for entropy
    //idli
 
+//idli1
+   int m_isHighEntropy; // for entropy
+//idli1
 //idli
 
   /**
