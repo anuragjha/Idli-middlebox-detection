@@ -229,6 +229,7 @@ namespace ns3 {
 	PointToPointNetDevice::GetDecompression(void){
 		return decompress;
 	}
+  //idli
 
 	bool
 	PointToPointNetDevice::ProcessHeader (Ptr<Packet> p, uint16_t& param)
@@ -364,8 +365,8 @@ namespace ns3 {
 
 	void
 	PointToPointNetDevice::Receive (Ptr<Packet> packet)
-	{
-		//idli
+	{  //idli
+		
 		NS_LOG_FUNCTION (this << packet);
 		uint16_t protocol = 0;
 		Ptr<Node> node = GetNode();
@@ -375,7 +376,7 @@ namespace ns3 {
 
 			NS_LOG_INFO (" Device " << i << " type = " << dev->GetAddress());
 		}
-		//idli
+		
 		if (m_receiveErrorModel && m_receiveErrorModel->IsCorrupt (packet) ) 
 		{
 			// 
@@ -393,69 +394,35 @@ namespace ns3 {
 			//
 
 			// idli
-			//std::cout<<"in receieve --> ";
 
-			//declaring ppp header
 			PppHeader ppp;
 			packet->PeekHeader(ppp);
 
 
 			if (decompress == true && ppp.GetProtocol() == 16417) { //checking if the packet has to be compressed
-
-				//std::cout << std::endl<< "DeCompression needed"<< std::endl;
-
-				//declaring packet and header size
-				//int packetSize;
-				//int pppHeaderSize;
-				//int ipv4HeaderSize;
-				//int udpHeaderSize;
-				//int seqTsHeaderSize;
-
 				//declaring header variables
 				Ipv4Header ipv4Header;
 				UdpHeader udpHeader;
 				SeqTsHeader seqTsHeader;
 
-				//packetSize = packet -> GetSize();
-				//std::cout << std::endl <<"Packet after removing headers:" << *packet<<std::endl;
-
 				packet->RemoveHeader(ppp);
-				//pppHeaderSize = packetSize - packet -> GetSize ();
 
 				packet->RemoveHeader(ipv4Header);
-				//ipv4HeaderSize = packetSize - pppHeaderSize - packet -> GetSize ();
 
 				packet->RemoveHeader(udpHeader);
-				//udpHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - packet -> GetSize ();
 
 				packet->RemoveHeader(seqTsHeader);
-				//seqTsHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - udpHeaderSize -packet -> GetSize ();
 
-				//getting data from packet //idliidli ==>
 				uint8_t *buffer = new uint8_t[packet->GetSize ()];
-				//uint32_t dataSize = packet->CopyData(buffer, packet->GetSize ());//nowidli removing datasize
         /*instead*/packet->CopyData(buffer, packet->GetSize ());
 				std::string cData = std::string(buffer, buffer+packet->GetSize());
-				//std::cout<<"Router2 original packet Data Size : "<<dataSize<<std::endl;//nowidli
-				//std::cout<<"Received data : "<<cdata<<std::endl;
-
-				////
+	
 				// uncompressing data 
 
-				////
-				//std::string ucData = decompressData(cdata);
 				std::string ucData = zlib_decompress_string(cData);
-
-
-				//std::cout<<"ucData : "<<ucData<<std::endl;
-
-
 
 				std::string protocolData = ucData.substr(0, 6);
 				std::string originalData = ucData.substr(protocolData.length(),ucData.length());
-
-				//std::cout<<"protocolData : "<<protocolData<<std::endl;
-				//std::cout<<"originalData : "<<originalData.length()<<std::endl;
 
 				//creating new packet
 				Ptr<Packet> newPacket = Create<Packet> (reinterpret_cast<const uint8_t*> (originalData.c_str()),originalData.length());
@@ -472,12 +439,8 @@ namespace ns3 {
 				AddHeader (newPacket, 2048); //idli
 
 				packet = newPacket;
-				//std::cout << std::endl <<"Un-compressed Packet to be sent : " <<std::endl<< *packet<<std::endl;
 
-			} else {
-
-			}
-
+			} 
 			//  idli    
 
 
@@ -660,17 +623,11 @@ namespace ns3 {
 			return false;
 		}
 
-
-		//std::cout <<std::endl<<std::endl<<"here:::::::"<<protocolNumber<<std::endl<<std::endl;
 		//
 		// Stick a point to point protocol header on the packet in preparation for
 		// shoving it out the door.
 		//
 		AddHeader (packet, protocolNumber);
-
-
-		//idli
-		//std::cout<<"in Send --> ";
 
 		//declaring ppp header
 		PppHeader ppp;
@@ -678,63 +635,34 @@ namespace ns3 {
 
 		if (compress == true && ppp.GetProtocol() == 33) { //checking if the packet has to be compressed and protocol is 0X0021
 
-			//declaring packet and header size
-			//int packetSize;
-			//int pppHeaderSize;
-			//int ipv4HeaderSize;
-			//int udpHeaderSize;
-			//int seqTsHeaderSize;
-			//int ucDataLength;
-
 			//declaring header variables
 			Ipv4Header ipv4Header;
 			UdpHeader udpHeader;
 			SeqTsHeader seqTsHeader;
 
-			//std::cout << std::endl;
-			//std::cout << "Compression needed"<<std::endl;
-			//std::cout << "Original Packet : "<<std::endl << *packet<<std::endl;
-			//packetSize = packet -> GetSize ();
-
 			packet->RemoveHeader(ppp);
-			//std::cout << std::endl <<"Packet after removing header:" << *packet<<std::endl;
-			//pppHeaderSize = packetSize - packet -> GetSize ();
 
 			packet->RemoveHeader(ipv4Header);
-			//ipv4HeaderSize = packetSize - pppHeaderSize - packet -> GetSize ();
 
 			packet->RemoveHeader(udpHeader);
-			//udpHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - packet -> GetSize ();
 
 			packet->RemoveHeader(seqTsHeader);
-			//seqTsHeaderSize = packetSize - pppHeaderSize - ipv4HeaderSize - udpHeaderSize - packet -> GetSize ();
 
 			//getting data from packet //
 			uint8_t *buffer = new uint8_t[packet->GetSize () ];
-			//uint32_t datapoSize = packet->CopyData(buffer, packet->GetSize ());//nowidli
 			std::string data = std::string(buffer, buffer+packet->GetSize());
-			//std::cout<<"Router1 original packet Data Size : "<<datapoSize<<std::endl;//nowidli
-			//std::cout<<"Received data : "<<data<<std::endl;
-
 
 			std::string protocol = "0x0021";
 			std::string ucData  = protocol+data;// data
-			//std::string ucData  = data;
 
 			////
 			// compress Data
 
-			//std::string cData  =  compressData(ucData);//ucData;
 			std::string cData = zlib_compress_string(ucData);
 
 
 			//creating new packet
 			Ptr<Packet> newPacket = Create<Packet> ((reinterpret_cast<const uint8_t*> (cData.c_str())),cData.length());
-
-			//uint8_t *newBuffer = new uint8_t[newPacket->GetSize ()];
-			//std::string newData = std::string(newBuffer, newBuffer+newPacket->GetSize());
-			//std::cout <<std::endl<<std::endl<<"cData :"<< cData<<std::endl;
-
 
 			newPacket -> AddHeader(seqTsHeader);
 
@@ -748,9 +676,6 @@ namespace ns3 {
 			AddHeader (newPacket, 2049); //idli
 
 			packet = newPacket;
-			//std::cout << std::endl <<"Compressed Packet to be sent : " <<std::endl<< *packet<<std::endl;
-
-
 
 		}
 		//idli
