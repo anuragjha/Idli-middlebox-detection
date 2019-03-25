@@ -9,7 +9,7 @@ Created on Mon Mar 25 01:06:35 2019
 import numpy as np
 import matplotlib.pyplot as plt
 
-data_file = np.loadtxt('../Final.txt',delimiter=' ')
+data_file = np.loadtxt('Final.txt',delimiter=' ')
 
 datarate = data_file[0:10,0]
 
