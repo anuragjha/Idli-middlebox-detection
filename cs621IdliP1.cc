@@ -15,13 +15,16 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("cs621P1Idli");
+NS_LOG_COMPONENT_DEFINE ("cs621P1Idli - NS3 Compression Detection Application");
 
 void
 generateRandomPayloadFile(void);
 
 Time
 makeSimulation(std::string, std::string, bool, bool, int);
+
+void writeToFile(int, int64_t);
+
 
 std::tuple<int, int, int, std::string>
 readConfigParamaters(std::string cfFileName){
@@ -67,6 +70,8 @@ generateRandomPayloadFile() {
 int
 main(int argc, char *argv[])
 {
+
+	std::cout<<"cs621 Idli P1\n\n";
 	Time::SetResolution(Time::NS);
 
 	CommandLine cmd;
@@ -89,25 +94,26 @@ main(int argc, char *argv[])
 			int minDataRate = std::get<1>(configParameters);
 			int maxDataRate = std::get<2>(configParameters); 
 			std::string protocol = std::get<3>(configParameters);
-			std::cout<<"cs621 Idli P1\n\n";
 			std::cout<<"Config Parameters" << std::endl;
 			std::cout<<"Compression:" << compressionFlag << std::endl;
 			std::cout<<"minDataRate:" << minDataRate << std::endl;
 			std::cout<<"maxDataRate:" << maxDataRate << std::endl;
-			std::cout<<"protocol:" << protocol << std::endl;
+			std::cout<<"protocol:" << protocol << std::endl<< std::endl;
 
 			//generateRandomPayloadFile();	/// remove this comment when project ready idli
 
 			
 			for(int i = minDataRate; i<=maxDataRate; i++)	{ // data rate change here
 
-				Time lowEDT = makeSimulation("EXP_"+std::to_string(i)+"_", std::string (std::to_string(i)+"Mbps"), compressionFlag, false, i);
-				Time highEDT = makeSimulation("EXP_"+std::to_string(i)+"_", std::string (std::to_string(i)+"Mbps"), compressionFlag, true, i);
-
+				Time lowEDT = makeSimulation("p1_", std::string (std::to_string(i)+"Mbps"), compressionFlag, false, i);
+				Time highEDT = makeSimulation("p1_", std::string (std::to_string(i)+"Mbps"), compressionFlag, true, i);
+				int64_t delta = highEDT.GetMilliSeconds() - lowEDT.GetMilliSeconds();
+				writeToFile(i, delta);
+	
 				if (highEDT.GetMilliSeconds() - lowEDT.GetMilliSeconds() >= 100) {
-						std::cout << "Compression detected for datarate "<< std::to_string(i)<<" Mbps"<< "\n\n";
+						std::cout << "Compression detected at datarate "<< std::to_string(i)<<" Mbps, coz delta time is "<< delta <<" ms"<< "\n\n";
 				} else {
-						std::cout << "Not detected for datarate "<< std::to_string(i)<<" Mbps"<< "\n\n";
+						std::cout << "Not detected at datarate "<< std::to_string(i)<<" Mbps, coz delta time is "<< delta <<" ms"<< "\n\n";
 				}
 
 			}
@@ -115,6 +121,17 @@ main(int argc, char *argv[])
 	}
 	return 0;
 }
+
+
+void writeToFile(int i, int64_t delta) {
+		std::ofstream ofs;
+		ofs.open ("Final.txt", std::ofstream::out | std::ofstream::app);
+
+		ofs << std::to_string(i) << " "<< std::to_string(delta) <<std::endl;
+
+		ofs.close();
+}
+
 
 Time
 makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compressionFlag, bool highEntropy, int round){
@@ -135,7 +152,6 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 	//LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
 	//idlilate
 	Config::SetDefault("ns3::QueueBase::MaxSize",StringValue("6000p"));
-	//idlilate
 	//Packet::EnablePrinting();
 
 	//creating 4 nodes
@@ -169,21 +185,17 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 	Ptr<PointToPointNetDevice> ppp1 = DynamicCast<PointToPointNetDevice>(ndc12.Get (0));
 
 	Ptr<PointToPointNetDevice> ppp2 = DynamicCast<PointToPointNetDevice> (ndc12.Get (1));
+
+	std::string isComp;
 	if(compressionFlag == true) {
 		ppp1->EnableCompression();	
 		ppp2->EnableDecompression();
-
+		isComp = "CY";
+	} else {
+		isComp = "CN";
 	}
-	if(highEntropy == true) {
 
 
-	}
-	//bool compress = ppp1->GetCompression();
-	//bool decompress = ppp2->GetDecompression();
-	//	std::cout<<"Compress:"<<compress<<std::endl;
-	//	std::cout<<"Decompress:"<<decompress<<std::endl;
-
-	//idli
 	//use ipv4addresshelper for allocation of ip address
 	Ipv4AddressHelper address;
 	address.SetBase("10.1.1.0", "255.255.255.0");
@@ -202,7 +214,7 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 	////  at this point now we need applications to generate traffic
 
 	//////////////////////////////////////////////////
-	NS_LOG_INFO ("Create Application 1");
+	NS_LOG_INFO ("Creating Application 1");
 
 	//
 	// Create one udpServer applications on node one.
@@ -222,9 +234,9 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 	client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
 	client.SetAttribute ("Interval", TimeValue (interPacketInterval));
 	client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-	//idli1
+	
+//idli1
 	std::string isHigh;
-
 	if(highEntropy == true) {
 		client.SetAttribute ("IsHighEntropy", UintegerValue (1));
 		isHigh = "h";
@@ -232,39 +244,14 @@ makeSimulation(std::string pcapPrefix, std::string routersdataRate, bool compres
 		client.SetAttribute ("IsHighEntropy", UintegerValue (0));
 		isHigh = "l";
 	}
-	//idli1
-	ApplicationContainer clientApps = client.Install (nodes.Get (0));
-	//ApplicationContainer clientApps2 = client.Install (nodes.Get (0));
 
-//me
-	//client.SetAttribute ("IsHighEntropy", UintegerValue (0));
-	//isHigh = "l";
-//me
+	ApplicationContainer clientApps = client.Install (nodes.Get (0));
 
 	clientApps.Start (Seconds (2.0));
 	clientApps.Stop (Seconds (40000.0));
 
-//me
-//	client.SetAttribute ("IsHighEntropy", UintegerValue (1));
-//	isHigh = "h";
 
-//Ptr<UdpServer> udpServer =  server.GetServer();
-
-// lowEntropyTime = udpServer -> GetLowEntropyTime();
-
-//	server.SetAttribute ("IsHighEntropy", UintegerValue (1));
-//udpServer-> m_isHighEntropy = 1;
-
-//	clientApps2.Start (Seconds (40000.0));
-//	clientApps2.Stop (Seconds (60000.0));
-
-// highEntropyTime = udpServer -> GetHighEntropyTime();
-
-//me
-	//ascii and pcap generate
-	//AsciiTraceHelper ascii;
-	//pointToPoint.EnableAsciiAll (ascii.CreateFileStream ("p1_"+pcapPrefix+".tr"));
-	pointToPoint.EnablePcapAll ("p1"+pcapPrefix+"_dr_"+std::to_string(round)+"_ent_"+isHigh +"-");
+	pointToPoint.EnablePcapAll (pcapPrefix+isComp+"_"+"_dr_"+std::to_string(round)+"_ent_"+isHigh +"-");
 
 
 	//start and then destroy simulator
